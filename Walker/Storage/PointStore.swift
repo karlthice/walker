@@ -20,7 +20,7 @@ struct LogEvent: Identifiable {
 final class PointStore {
     static let shared = PointStore(url: defaultURL)
 
-    static var defaultURL: URL {
+    nonisolated static var defaultURL: URL {
         URL.applicationSupportDirectory
             .appending(path: "Walker", directoryHint: .isDirectory)
             .appending(path: "walker.sqlite")
@@ -138,7 +138,7 @@ final class PointStore {
         }
     }
 
-    private func requireDatabase() throws -> Database {
+    func requireDatabase() throws -> Database {
         guard let db = openIfNeeded() else { throw DatabaseError(description: "database unavailable") }
         return db
     }
@@ -159,6 +159,17 @@ final class PointStore {
                 ts REAL NOT NULL,
                 kind TEXT NOT NULL,
                 message TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS tiles (
+                z INTEGER NOT NULL,
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                bits BLOB NOT NULL,
+                PRIMARY KEY (z, x, y)
+            ) WITHOUT ROWID;
+            CREATE TABLE IF NOT EXISTS meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
             );
             """)
         try db.run(
@@ -182,7 +193,7 @@ final class PointStore {
         )
     }
 
-    private static func point(_ row: Database.Row) -> LocationPoint {
+    static func point(_ row: Database.Row) -> LocationPoint {
         LocationPoint(
             timestamp: Date(timeIntervalSince1970: row.double(0)),
             latitude: row.double(1),

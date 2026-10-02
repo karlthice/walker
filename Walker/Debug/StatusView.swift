@@ -4,6 +4,7 @@ import SwiftUI
 struct StatusView: View {
     @Environment(LocationService.self) private var service
     @State private var storedPoints = 0
+    @State private var exploredTiles = 0
 
     var body: some View {
         @Bindable var service = service
@@ -36,6 +37,7 @@ struct StatusView: View {
 
                 Section("Data") {
                     LabeledContent("Stored points", value: "\(storedPoints)")
+                    LabeledContent("Explored tiles", value: "\(exploredTiles)")
                     LabeledContent("Accepted this session", value: "\(service.acceptedThisSession)")
                     LabeledContent("Rejected this session", value: "\(service.rejectedThisSession)")
                 }
@@ -43,6 +45,7 @@ struct StatusView: View {
             .navigationTitle("Walker")
             .task(id: service.revision) {
                 storedPoints = service.store.pointCount()
+                exploredTiles = service.store.tileCount(zoom: FogGrid.fineCellZoom - FogGrid.tileShift)
             }
         }
     }

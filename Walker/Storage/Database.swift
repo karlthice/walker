@@ -5,6 +5,7 @@ enum SQLValue {
     case int(Int64)
     case double(Double)
     case text(String)
+    case blob(Data)
 }
 
 struct DatabaseError: Error, CustomStringConvertible {
@@ -16,8 +17,9 @@ final class Database {
     private var handle: OpaquePointer?
 
     /// Pass ":memory:" for an in-memory database.
-    init(path: String) throws {
-        let flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX
+    init(path: String, readOnly: Bool = false) throws {
+        let access = readOnly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+        let flags = access | SQLITE_OPEN_FULLMUTEX
         guard sqlite3_open_v2(path, &handle, flags, nil) == SQLITE_OK else {
             let message = handle.map { String(cString: sqlite3_errmsg($0)) } ?? "unknown error"
             sqlite3_close(handle)
@@ -72,6 +74,8 @@ final class Database {
             case .int(let v): sqlite3_bind_int64(statement, index, v)
             case .double(let v): sqlite3_bind_double(statement, index, v)
             case .text(let v): sqlite3_bind_text(statement, index, v, -1, SQLITE_TRANSIENT)
+            case .blob(let v):
+                _ = v.withUnsafeBytes { sqlite3_bind_blob(statement, index, $0.baseAddress, Int32(v.count), SQLITE_TRANSIENT) }
             }
         }
         return statement
@@ -88,6 +92,10 @@ final class Database {
         func double(_ column: Int32) -> Double { sqlite3_column_double(statement, column) }
         func text(_ column: Int32) -> String {
             sqlite3_column_text(statement, column).map { String(cString: $0) } ?? ""
+        }
+        func blob(_ column: Int32) -> Data {
+            guard let bytes = sqlite3_column_blob(statement, column) else { return Data() }
+            return Data(bytes: bytes, count: Int(sqlite3_column_bytes(statement, column)))
         }
     }
 }

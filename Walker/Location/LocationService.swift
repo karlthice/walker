@@ -19,7 +19,7 @@ final class LocationService: NSObject {
         case paused = "Paused (geofence armed)"
     }
 
-    static let revealRadius: CLLocationDistance = 150
+    private static let geofenceRadius: CLLocationDistance = 150
     private static let geofenceID = "resume"
     private static let enabledKey = "trackingEnabled"
 
@@ -44,6 +44,7 @@ final class LocationService: NSObject {
     }
 
     @ObservationIgnored let store: PointStore
+    @ObservationIgnored private let revealer: Revealer
     @ObservationIgnored private let manager = CLLocationManager()
     @ObservationIgnored private var filter = PointFilter()
     @ObservationIgnored private var monitor: Task<CLMonitor, Never>?
@@ -51,6 +52,7 @@ final class LocationService: NSObject {
 
     init(store: PointStore) {
         self.store = store
+        self.revealer = Revealer(store: store)
         self.isEnabled = UserDefaults.standard.object(forKey: Self.enabledKey) as? Bool ?? true
         super.init()
     }
@@ -63,6 +65,7 @@ final class LocationService: NSObject {
             filter.seed(with: last)
             lastAccepted = last
         }
+        revealFog(rebuildIfNeeded: true)
 
         manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
         manager.distanceFilter = 75
@@ -86,6 +89,7 @@ final class LocationService: NSObject {
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.store.flushPending()
+                self.revealFog()
                 self.revision += 1
             }
         }
@@ -143,17 +147,35 @@ final class LocationService: NSObject {
         if state == .paused {
             start(reason: "significant change")
         }
+        var accepted = false
         for location in locations {
             if filter.evaluate(location) == .accept {
                 let point = LocationPoint(location)
                 store.insert(point)
                 lastAccepted = point
                 acceptedThisSession += 1
+                accepted = true
             } else {
                 rejectedThisSession += 1
             }
         }
+        if accepted {
+            revealFog()
+        }
         revision += 1
+    }
+
+    private func revealFog(rebuildIfNeeded: Bool = false) {
+        do {
+            if rebuildIfNeeded, try revealer.needsRebuild() {
+                let start = Date()
+                let count = try revealer.rebuild()
+                log(.info, String(format: "Rebuilt fog from %d points in %.1f s", count, Date().timeIntervalSince(start)))
+            }
+            try revealer.catchUp()
+        } catch {
+            // Database still locked (before first unlock); the next catch-up applies these points.
+        }
     }
 
     // MARK: - Resume geofence
@@ -182,7 +204,7 @@ final class LocationService: NSObject {
     private func armGeofence(at coordinate: CLLocationCoordinate2D) {
         guard let monitor else { return }
         Task {
-            let condition = CLMonitor.CircularGeographicCondition(center: coordinate, radius: Self.revealRadius)
+            let condition = CLMonitor.CircularGeographicCondition(center: coordinate, radius: Self.geofenceRadius)
             await monitor.value.add(condition, identifier: Self.geofenceID, assuming: .satisfied)
         }
         log(.pause, String(format: "Paused; geofence armed at %.5f, %.5f", coordinate.latitude, coordinate.longitude))
