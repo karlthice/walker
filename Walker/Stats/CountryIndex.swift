@@ -18,20 +18,7 @@ final class CountryIndex: Sendable {
         }
 
         func contains(_ c: CLLocationCoordinate2D) -> Bool {
-            guard boxContains(c) else { return false }
-            var inside = false
-            for ring in rings {
-                var j = ring.count - 2
-                for i in stride(from: 0, to: ring.count, by: 2) {
-                    let (xi, yi, xj, yj) = (ring[i], ring[i + 1], ring[j], ring[j + 1])
-                    if (yi > c.latitude) != (yj > c.latitude),
-                       c.longitude < (xj - xi) * (c.latitude - yi) / (yj - yi) + xi {
-                        inside.toggle()
-                    }
-                    j = i
-                }
-            }
-            return inside
+            boxContains(c) && PolygonMath.contains(rings: rings, longitude: c.longitude, latitude: c.latitude)
         }
 
         /// Approximate distance in metres to the nearest border edge (local flat projection).

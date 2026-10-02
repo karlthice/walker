@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04170E93E5F75A5274B25563 /* Overpass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27EDE702A2B1D13939EB7D6D /* Overpass.swift */; };
 		10D2B627838083E3651B5C73 /* Revealer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4E95DAF493184454F842A1 /* Revealer.swift */; };
 		11A70B1EB3D3D4FEE73C338B /* FogMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13E6D91CBF3173DF4FC3CCD /* FogMapView.swift */; };
 		12E02FAC907AB033956C6A7A /* PointStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B423DFB1A99C60BC3F3A423D /* PointStore.swift */; };
@@ -25,8 +26,11 @@
 		774BA63F2F5BF30201957405 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8B889F04FC3965A4DB918078 /* Assets.xcassets */; };
 		809C9A4AE62120C12370713D /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3285AEAFF32A74D23E13CA3D /* LogView.swift */; };
 		8B796C2BA76F7391812FFD90 /* FogRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E934136236F5227C00B9AD0 /* FogRenderer.swift */; };
+		8D2B080709F0DD975228F208 /* PlacesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34BFFCAE2F45FD52D4F4C550 /* PlacesTests.swift */; };
 		97AA480D0C25DCB0B8ACC68A /* StatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E8D7CD40495BFB4C6356F8 /* StatusView.swift */; };
 		9E19892E9103BBE05C2B11A9 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13F149C43756BDD72E778A85 /* StatsView.swift */; };
+		A21A2A2A0B801A6EC252548C /* reykjavik-overpass.json in Resources */ = {isa = PBXBuildFile; fileRef = EC7EC0D9CCC10A6C5199C6DB /* reykjavik-overpass.json */; };
+		A3177E7D8123FCDB41F55BD5 /* PlaceShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF776D98DDE79DF16E961EF5 /* PlaceShape.swift */; };
 		B538CACDDDAFB4645E77BAC4 /* WalkerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B163D8958B032E4D574360E /* WalkerApp.swift */; };
 		C18B5E34BD92EE740465CFD0 /* PointFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4138E232C776EAEF95045503 /* PointFilterTests.swift */; };
 		C5BCE71D195AAD39F04E70B1 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D842D47ECDC6CF08DB4BEC1 /* RootView.swift */; };
@@ -34,7 +38,9 @@
 		DD7CD1314443419077A35841 /* PointFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44AE55732A1F6CB549FD4268 /* PointFilter.swift */; };
 		E94AFB834A99B6962D0A5E1C /* TileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCDF0E5EAE8BDA952970708 /* TileReader.swift */; };
 		EC07BE08B800CD83ABED453E /* countries.json in Resources */ = {isa = PBXBuildFile; fileRef = 59C29998D9E049B65364A22B /* countries.json */; };
+		ECBD12373FC1945AF76D1663 /* PlaceListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E650C9BBD2BA145F61FFB82B /* PlaceListView.swift */; };
 		FDC115890A551B9AA4F3CD49 /* LocationPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84DF1A7056D44F387368506D /* LocationPoint.swift */; };
+		FF7EA0E1FB13BD16B3E70ABD /* PlaceResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A25D9972CE6F49C1DABA5A /* PlaceResolver.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,11 +57,14 @@
 		0E934136236F5227C00B9AD0 /* FogRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FogRenderer.swift; sourceTree = "<group>"; };
 		13F149C43756BDD72E778A85 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		167BC3C7AD2686B82098CB69 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		19A25D9972CE6F49C1DABA5A /* PlaceResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceResolver.swift; sourceTree = "<group>"; };
 		19B2A864FAEAE4F2CD0ED2FB /* WalkerTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WalkerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		253CCD38DE33393F9822D41C /* ExploredGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploredGrid.swift; sourceTree = "<group>"; };
+		27EDE702A2B1D13939EB7D6D /* Overpass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Overpass.swift; sourceTree = "<group>"; };
 		2CB0B492CF1842C2E4D1E4D0 /* StatsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsTests.swift; sourceTree = "<group>"; };
 		2D842D47ECDC6CF08DB4BEC1 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		3285AEAFF32A74D23E13CA3D /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
+		34BFFCAE2F45FD52D4F4C550 /* PlacesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacesTests.swift; sourceTree = "<group>"; };
 		4138E232C776EAEF95045503 /* PointFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointFilterTests.swift; sourceTree = "<group>"; };
 		44AE55732A1F6CB549FD4268 /* PointFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointFilter.swift; sourceTree = "<group>"; };
 		4B163D8958B032E4D574360E /* WalkerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkerApp.swift; sourceTree = "<group>"; };
@@ -78,7 +87,10 @@
 		C13E6D91CBF3173DF4FC3CCD /* FogMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FogMapView.swift; sourceTree = "<group>"; };
 		C9D004D520AB7AE064F0E627 /* StatsCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsCalculator.swift; sourceTree = "<group>"; };
 		CDD547C350C6AED172CF7925 /* FogGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FogGrid.swift; sourceTree = "<group>"; };
+		E650C9BBD2BA145F61FFB82B /* PlaceListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceListView.swift; sourceTree = "<group>"; };
 		E76F5E77522B249E792973A7 /* FogGridTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FogGridTests.swift; sourceTree = "<group>"; };
+		EC7EC0D9CCC10A6C5199C6DB /* reykjavik-overpass.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "reykjavik-overpass.json"; sourceTree = "<group>"; };
+		EF776D98DDE79DF16E961EF5 /* PlaceShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceShape.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -133,10 +145,19 @@
 			isa = PBXGroup;
 			children = (
 				6B814548ECCFA764A5934F52 /* CountryIndex.swift */,
+				E650C9BBD2BA145F61FFB82B /* PlaceListView.swift */,
 				C9D004D520AB7AE064F0E627 /* StatsCalculator.swift */,
 				13F149C43756BDD72E778A85 /* StatsView.swift */,
 			);
 			path = Stats;
+			sourceTree = "<group>";
+		};
+		90D8E6022970F59539C27452 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				EC7EC0D9CCC10A6C5199C6DB /* reykjavik-overpass.json */,
+			);
+			path = Fixtures;
 			sourceTree = "<group>";
 		};
 		99FA74952C0F83565194A08A /* WalkerTests */ = {
@@ -145,12 +166,24 @@
 				6D2139DDAD157F02FF0C2125 /* ExploredGridTests.swift */,
 				89DD99ACBEC285D8FF78BB24 /* FogBitmapTests.swift */,
 				E76F5E77522B249E792973A7 /* FogGridTests.swift */,
+				34BFFCAE2F45FD52D4F4C550 /* PlacesTests.swift */,
 				4138E232C776EAEF95045503 /* PointFilterTests.swift */,
 				6EBF54C6628D0EF463FB8273 /* PointStoreTests.swift */,
 				BEBEFC3AE7FDCAF1AD0CC429 /* RevealerTests.swift */,
 				2CB0B492CF1842C2E4D1E4D0 /* StatsTests.swift */,
+				90D8E6022970F59539C27452 /* Fixtures */,
 			);
 			path = WalkerTests;
+			sourceTree = "<group>";
+		};
+		9B8F6A669628C2B15AAB268A /* Places */ = {
+			isa = PBXGroup;
+			children = (
+				27EDE702A2B1D13939EB7D6D /* Overpass.swift */,
+				19A25D9972CE6F49C1DABA5A /* PlaceResolver.swift */,
+				EF776D98DDE79DF16E961EF5 /* PlaceShape.swift */,
+			);
+			path = Places;
 			sourceTree = "<group>";
 		};
 		AFCF7074CBB967D0F56743A7 /* Products */ = {
@@ -172,6 +205,7 @@
 				FE4078E6830F21B8C8FDD126 /* Fog */,
 				656F15AE508619DCA1F80C60 /* Location */,
 				7842B657D9843E5896852FB1 /* Map */,
+				9B8F6A669628C2B15AAB268A /* Places */,
 				EB6CA0FEB92ED07E3187B83D /* Resources */,
 				8EC452F1715E9789CC856DC6 /* Stats */,
 				12A0FE38D81F9111C87A7AC9 /* Storage */,
@@ -233,6 +267,7 @@
 			buildConfigurationList = 1B11D5AD556817AB0234F76D /* Build configuration list for PBXNativeTarget "WalkerTests" */;
 			buildPhases = (
 				B8DBAB936063395EC8D58D9E /* Sources */,
+				A1356D5913BAE2111CBFC090 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -286,6 +321,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		A1356D5913BAE2111CBFC090 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A21A2A2A0B801A6EC252548C /* reykjavik-overpass.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FE27FE8B262E36B16F6FC8F4 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -311,6 +354,10 @@
 				FDC115890A551B9AA4F3CD49 /* LocationPoint.swift in Sources */,
 				198AB5BEB7F47716A6D9F2CB /* LocationService.swift in Sources */,
 				809C9A4AE62120C12370713D /* LogView.swift in Sources */,
+				04170E93E5F75A5274B25563 /* Overpass.swift in Sources */,
+				ECBD12373FC1945AF76D1663 /* PlaceListView.swift in Sources */,
+				FF7EA0E1FB13BD16B3E70ABD /* PlaceResolver.swift in Sources */,
+				A3177E7D8123FCDB41F55BD5 /* PlaceShape.swift in Sources */,
 				DD7CD1314443419077A35841 /* PointFilter.swift in Sources */,
 				364EABDB10E52724673187AF /* PointStore+Grid.swift in Sources */,
 				12E02FAC907AB033956C6A7A /* PointStore.swift in Sources */,
@@ -331,6 +378,7 @@
 				6C60E9EF317CEA5C97738530 /* ExploredGridTests.swift in Sources */,
 				29DC80FD3FB4947E845BCFCD /* FogBitmapTests.swift in Sources */,
 				CFE1D8FC798725436FFBDFFE /* FogGridTests.swift in Sources */,
+				8D2B080709F0DD975228F208 /* PlacesTests.swift in Sources */,
 				C18B5E34BD92EE740465CFD0 /* PointFilterTests.swift in Sources */,
 				6EFB6C73CD22D682A6508CA9 /* PointStoreTests.swift in Sources */,
 				5E2BD5DE35BF4A2D85B89FEB /* RevealerTests.swift in Sources */,

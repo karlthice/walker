@@ -1,6 +1,6 @@
 import CoreLocation
 
-struct CountryStat: Identifiable, Equatable {
+struct CountryStat: Identifiable, Hashable, Sendable {
     var code: String
     var name: String
     /// m²

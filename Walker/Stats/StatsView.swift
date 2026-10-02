@@ -32,10 +32,13 @@ struct StatsView: View {
                 } header: {
                     Text("Countries")
                 } footer: {
-                    Text("Share of each country's land area you have uncovered.")
+                    Text("Share of each country's land area you have uncovered. Tap a country for its cities and neighbourhoods.")
                 }
             }
             .navigationTitle("Stats")
+            .navigationDestination(for: PlaceListView.Scope.self) { scope in
+                PlaceListView(scope: scope)
+            }
             .task(id: service.revision) {
                 days = service.store.dailyStats()
             }
@@ -148,6 +151,7 @@ struct StatsView: View {
                     .foregroundStyle(.secondary)
             }
             ForEach(countries) { country in
+                NavigationLink(value: PlaceListView.Scope.country(country)) {
                 HStack {
                     Text(country.name)
                     Spacer()
@@ -161,6 +165,7 @@ struct StatsView: View {
                     }
                 }
                 .accessibilityElement(children: .combine)
+                }
             }
         } else {
             ProgressView()

@@ -25,6 +25,8 @@ final class Database {
             sqlite3_close(handle)
             throw DatabaseError(description: "open failed: \(message)")
         }
+        // The app, map renderer and place lookups each have a connection; wait for locks.
+        sqlite3_busy_timeout(handle, 5000)
     }
 
     deinit {

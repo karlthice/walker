@@ -172,7 +172,33 @@ final class PointStore {
                 area REAL NOT NULL,
                 distance REAL NOT NULL
             );
-            CREATE TABLE IF NOT EXISTS meta (
+            CREATE TABLE IF NOT EXISTS places (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                english TEXT,
+                kind TEXT NOT NULL,
+                parent INTEGER,
+                country TEXT,
+                area REAL NOT NULL,
+                shape TEXT,
+                lat REAL,
+                lon REAL
+            );
+            CREATE INDEX IF NOT EXISTS places_parent ON places(parent);
+            CREATE TABLE IF NOT EXISTS tile_places (
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                cells INTEGER NOT NULL,
+                PRIMARY KEY (x, y)
+            ) WITHOUT ROWID;
+            CREATE TABLE IF NOT EXISTS tile_place_areas (
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                place INTEGER NOT NULL,
+                area REAL NOT NULL,
+                PRIMARY KEY (x, y, place)
+            ) WITHOUT ROWID;
+                        CREATE TABLE IF NOT EXISTS meta (
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL
             );
