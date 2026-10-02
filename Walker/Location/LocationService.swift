@@ -22,6 +22,7 @@ final class LocationService: NSObject {
     private static let geofenceRadius: CLLocationDistance = 150
     private static let geofenceID = "resume"
     private static let enabledKey = "trackingEnabled"
+    private static let askedForAlwaysKey = "askedForAlways"
 
     private(set) var authorization: CLAuthorizationStatus = .notDetermined
     private(set) var preciseLocation = true
@@ -95,6 +96,11 @@ final class LocationService: NSObject {
         }
 
         start(reason: "launch")
+
+        // First launch: ask right away rather than waiting for a tap on the Status tab.
+        if authorization == .notDetermined {
+            manager.requestWhenInUseAuthorization()
+        }
     }
 
     func requestPermission() {
@@ -225,6 +231,12 @@ extension LocationService: CLLocationManagerDelegate {
             let previous = authorization
             authorization = self.manager.authorizationStatus
             preciseLocation = self.manager.accuracyAuthorization == .fullAccuracy
+            // Follow "While Using" straight away with the "Always" prompt, once; iOS only shows it once anyway.
+            if previous == .notDetermined, authorization == .authorizedWhenInUse,
+               !UserDefaults.standard.bool(forKey: Self.askedForAlwaysKey) {
+                UserDefaults.standard.set(true, forKey: Self.askedForAlwaysKey)
+                self.manager.requestAlwaysAuthorization()
+            }
             if previous != authorization {
                 log(.auth, "Authorization: \(authorization.label)")
             }
