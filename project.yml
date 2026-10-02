@@ -1,6 +1,6 @@
 name: Walker
 options:
-  bundleIdPrefix: com.karlthoroddsen
+  bundleIdPrefix: com.karlthice
   deploymentTarget:
     iOS: "18.0"
   createIntermediateGroups: true
@@ -29,7 +29,7 @@ targets:
         NSLocationAlwaysAndWhenInUseUsageDescription: Walker clears the fog wherever you go, even when the app is closed. Your location never leaves this iPhone.
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.karlthoroddsen.Walker
+        PRODUCT_BUNDLE_IDENTIFIER: com.karlthice.walker
         TARGETED_DEVICE_FAMILY: "1"
   WalkerTests:
     type: bundle.unit-test
