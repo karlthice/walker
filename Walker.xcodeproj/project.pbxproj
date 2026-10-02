@@ -27,6 +27,7 @@
 		6EFB6C73CD22D682A6508CA9 /* PointStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EBF54C6628D0EF463FB8273 /* PointStoreTests.swift */; };
 		77396BC594DB80FC3F40AF65 /* FogGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDD547C350C6AED172CF7925 /* FogGrid.swift */; };
 		774BA63F2F5BF30201957405 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8B889F04FC3965A4DB918078 /* Assets.xcassets */; };
+		7EC357C8F9410CF805765270 /* nominatim-reykjavik-midborg.json in Resources */ = {isa = PBXBuildFile; fileRef = 821163FB3E6027A5B0537D66 /* nominatim-reykjavik-midborg.json */; };
 		809C9A4AE62120C12370713D /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3285AEAFF32A74D23E13CA3D /* LogView.swift */; };
 		870F313850B46B0E149D12D9 /* nominatim-reykjavik-city.json in Resources */ = {isa = PBXBuildFile; fileRef = 63F47B0EA1EC58F4288AF659 /* nominatim-reykjavik-city.json */; };
 		8B796C2BA76F7391812FFD90 /* FogRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E934136236F5227C00B9AD0 /* FogRenderer.swift */; };
@@ -39,6 +40,7 @@
 		C18B5E34BD92EE740465CFD0 /* PointFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4138E232C776EAEF95045503 /* PointFilterTests.swift */; };
 		C5BCE71D195AAD39F04E70B1 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D842D47ECDC6CF08DB4BEC1 /* RootView.swift */; };
 		CFE1D8FC798725436FFBDFFE /* FogGridTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E76F5E77522B249E792973A7 /* FogGridTests.swift */; };
+		D84D3DA266145C55E7627426 /* TileCountries.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7050910183B6AC299D764CA /* TileCountries.swift */; };
 		DD7CD1314443419077A35841 /* PointFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44AE55732A1F6CB549FD4268 /* PointFilter.swift */; };
 		E94AFB834A99B6962D0A5E1C /* TileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCDF0E5EAE8BDA952970708 /* TileReader.swift */; };
 		EC07BE08B800CD83ABED453E /* countries.json in Resources */ = {isa = PBXBuildFile; fileRef = 59C29998D9E049B65364A22B /* countries.json */; };
@@ -78,12 +80,14 @@
 		6D2139DDAD157F02FF0C2125 /* ExploredGridTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploredGridTests.swift; sourceTree = "<group>"; };
 		6EBF54C6628D0EF463FB8273 /* PointStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointStoreTests.swift; sourceTree = "<group>"; };
 		7A4E95DAF493184454F842A1 /* Revealer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Revealer.swift; sourceTree = "<group>"; };
+		821163FB3E6027A5B0537D66 /* nominatim-reykjavik-midborg.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "nominatim-reykjavik-midborg.json"; sourceTree = "<group>"; };
 		84DF1A7056D44F387368506D /* LocationPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPoint.swift; sourceTree = "<group>"; };
 		87E8D7CD40495BFB4C6356F8 /* StatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusView.swift; sourceTree = "<group>"; };
 		89DD99ACBEC285D8FF78BB24 /* FogBitmapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FogBitmapTests.swift; sourceTree = "<group>"; };
 		8B889F04FC3965A4DB918078 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8CC92C99ACABBCD893A7949A /* nominatim-ocean.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "nominatim-ocean.json"; sourceTree = "<group>"; };
 		A0C26DC0981BE67277D7CBA0 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		A7050910183B6AC299D764CA /* TileCountries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileCountries.swift; sourceTree = "<group>"; };
 		A922A4D8D0D5462766F7ECFF /* PointStore+Grid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PointStore+Grid.swift"; sourceTree = "<group>"; };
 		ADEC1A67ABB8306703DA89A7 /* Walker.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Walker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFCDF0E5EAE8BDA952970708 /* TileReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileReader.swift; sourceTree = "<group>"; };
@@ -156,6 +160,7 @@
 				E650C9BBD2BA145F61FFB82B /* PlaceListView.swift */,
 				C9D004D520AB7AE064F0E627 /* StatsCalculator.swift */,
 				13F149C43756BDD72E778A85 /* StatsView.swift */,
+				A7050910183B6AC299D764CA /* TileCountries.swift */,
 			);
 			path = Stats;
 			sourceTree = "<group>";
@@ -167,6 +172,7 @@
 				8CC92C99ACABBCD893A7949A /* nominatim-ocean.json */,
 				63F47B0EA1EC58F4288AF659 /* nominatim-reykjavik-city.json */,
 				F61583C11E49932D9A1BE45F /* nominatim-reykjavik-midbaer.json */,
+				821163FB3E6027A5B0537D66 /* nominatim-reykjavik-midborg.json */,
 				0FB337E945902180DBF34483 /* README.md */,
 			);
 			path = Fixtures;
@@ -342,6 +348,7 @@
 				0855AE36D07D9469F58BAEBB /* nominatim-ocean.json in Resources */,
 				870F313850B46B0E149D12D9 /* nominatim-reykjavik-city.json in Resources */,
 				3ED323CE6116F3DB9DE300F9 /* nominatim-reykjavik-midbaer.json in Resources */,
+				7EC357C8F9410CF805765270 /* nominatim-reykjavik-midborg.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -382,6 +389,7 @@
 				4C83556C119A7E72D7C10DF4 /* StatsCalculator.swift in Sources */,
 				9E19892E9103BBE05C2B11A9 /* StatsView.swift in Sources */,
 				97AA480D0C25DCB0B8ACC68A /* StatusView.swift in Sources */,
+				D84D3DA266145C55E7627426 /* TileCountries.swift in Sources */,
 				E94AFB834A99B6962D0A5E1C /* TileReader.swift in Sources */,
 				B538CACDDDAFB4645E77BAC4 /* WalkerApp.swift in Sources */,
 			);

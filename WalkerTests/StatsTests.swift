@@ -121,6 +121,13 @@ struct CountryIndexTests {
         #expect(index.country(at: CLLocationCoordinate2D(latitude: 40.7128, longitude: -74.0060))?.code == "USA")
     }
 
+    @Test func flags() {
+        let flags = Dictionary(index.countries.map { ($0.code, $0.flag) }, uniquingKeysWith: { a, _ in a })
+        #expect(flags["ISL"] == "🇮🇸")
+        #expect(flags["FRA"] == "🇫🇷") // ISO_A2 is -99 in the source data for France
+        #expect(flags["JPN"] == "🇯🇵")
+    }
+
     @Test func enclaveIsNotItsSurroundingCountry() {
         // Maseru, Lesotho, which is a hole in South Africa.
         #expect(index.country(at: CLLocationCoordinate2D(latitude: -29.31, longitude: 27.48))?.code == "LSO")
@@ -155,6 +162,12 @@ struct CountryStatsTests {
         let total = store.dailyStats().reduce(0) { $0 + $1.totals.area }
         let split = stats.reduce(0) { $0 + $1.exploredArea }
         #expect(abs(total - split) / total < 1e-9)
+
+        // Every tile now has its country saved.
+        let db = try Database(path: url.path)
+        let tiles = try db.query("SELECT COUNT(*) FROM tiles WHERE z = ?", [.int(Int64(FogGrid.fineTileZoom))]) { $0.int(0) }.first
+        let saved = try db.query("SELECT COUNT(*) FROM tile_countries") { $0.int(0) }.first
+        #expect(tiles == saved)
 
         let iceland = try #require(stats.first { $0.code == "ISL" })
         let circle = Double.pi * Revealer.radius * Revealer.radius

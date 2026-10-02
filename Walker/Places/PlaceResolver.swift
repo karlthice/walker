@@ -6,7 +6,7 @@ struct PlaceStat: Identifiable, Hashable, Sendable {
     var englishName: String?
     /// m²
     var exploredArea: Double
-    /// m²; 0 when the place is a point without a boundary.
+    /// m²; 0 when OpenStreetMap has the place only as a point, without a boundary.
     var totalArea: Double
 
     var fraction: Double? { totalArea > 0 ? exploredArea / totalArea : nil }
@@ -19,13 +19,14 @@ struct ResolveProgress: Sendable {
     var status: String?
 }
 
-/// Splits explored area into cities, then neighbourhoods, using OpenStreetMap places.
+/// Splits explored area into OpenStreetMap places: cities in a country, then the places
+/// one level down inside a place you open (districts, then neighbourhoods).
 ///
-/// Cities are resolved for a country, neighbourhoods only for a city you open. Each
-/// explored cell is assigned to a cached boundary containing it; a cell no cached boundary
-/// contains triggers one lookup there, whose boundary is cached, so lookups scale with the
-/// number of places rather than tiles. Results are stored per tile and recomputed only when
-/// the tile's explored cells change.
+/// The same rule applies at every level. Each explored cell goes to a cached boundary that
+/// contains it; a cell none contains triggers one lookup there, and the boundary found is
+/// cached, so lookups scale with the number of places rather than map tiles. If the lookup
+/// answers with the parent itself, that level doesn't exist there. Results are stored per
+/// tile and recomputed only when the tile's explored cells change.
 actor PlaceResolver {
     static let shared = PlaceResolver(databaseURL: PointStore.defaultURL, lookup: NominatimClient())
 
@@ -48,8 +49,13 @@ actor PlaceResolver {
     private let lookup: PlaceLookup
     private var db: Database?
     private var cities: [Int64: EdgeIndex]?
-    /// Neighbourhood boundaries by city.
-    private var neighbourhoods: [Int64: [(id: Int64, index: EdgeIndex)]] = [:]
+    private struct ChildKey: Hashable {
+        var parent: Int64
+        var level: PlaceLevel
+    }
+
+    /// Child boundaries by parent place and level, once loaded.
+    private var children: [ChildKey: [(id: Int64, index: EdgeIndex)]] = [:]
     /// Places known to have no usable boundary, so they aren't looked up again this session.
     private var shapeless: Set<Int64> = []
 
@@ -74,7 +80,7 @@ actor PlaceResolver {
     }
 
     func cityStats(country: String) throws -> [PlaceStat] {
-        try stats(where: "p.kind = 'city' AND p.country = ?", [.text(country)])
+        try stats(where: "p.kind = ? AND p.country = ?", [.text(PlaceLevel.city.rawValue), .text(country)])
     }
 
     private func resolveCities(in tile: Tile, country: String, countryShape: CountryIndex.Country?,
@@ -93,7 +99,7 @@ actor PlaceResolver {
 
             await status("Looking up a city…")
             // An explored cell is somewhere you've been, so it's on land: a good spot to ask about.
-            guard let place = try await lookup.place(at: cellCentre(tile, cell: cell), zoom: PlaceZoom.city),
+            guard let place = try await lookup.place(at: cellCentre(tile, cell: cell), zoom: PlaceLevel.city.zoom),
                   self.cities?[place.id] == nil, !shapeless.contains(place.id)
             else { break }
             guard var shape = place.shape else {
@@ -103,69 +109,130 @@ actor PlaceResolver {
             if let countryShape {
                 shape.area = Self.landArea(of: shape, country: countryShape)
             }
-            try insertPlace(place, shape: shape, kind: "city", parent: nil, country: country)
+            try insertPlace(place, shape: shape, level: .city, parent: nil, country: country)
             self.cities?[place.id] = EdgeIndex(shape: shape)
             try log("Found \(place.name) (\(StatsView.formatArea(shape.area)))")
             await status("Found \(place.name)")
         }
-        try save(tile, kind: "city", owner: owner, stateTable: "tile_places")
+        try save(tile, owner: owner, scope: .cities)
     }
 
-    // MARK: - Neighbourhoods
+    // MARK: - Places inside a place
 
-    func resolveNeighbourhoods(city: Int64, progress: @Sendable (ResolveProgress) async -> Void) async throws {
-        guard let cityIndex = try loadCities()[city] else { return }
-        try loadNeighbourhoods(city: city)
-        let tiles = try pendingNeighbourhoodTiles(city: city)
+    /// Assigns the explored tiles inside `parent` (a city or district) to places at `level`.
+    func resolveChildren(of parent: Int64, level: PlaceLevel, progress: @Sendable (ResolveProgress) async -> Void) async throws {
+        guard let parentIndex = try shapeIndex(parent) else { return }
+        let ancestors = try ancestorIDs(of: parent)
+        let key = ChildKey(parent: parent, level: level)
+        try loadChildren(key)
+        let tiles = try pendingChildTiles(key)
         await progress(ResolveProgress(done: 0, total: tiles.count))
         for (index, tile) in tiles.enumerated() {
             try Task.checkCancellation()
-            try await resolveNeighbourhoods(in: tile, city: city, cityIndex: cityIndex) { status in
+            try await resolveChildren(in: tile, key: key, parentIndex: parentIndex, ancestors: ancestors) { status in
                 await progress(ResolveProgress(done: index, total: tiles.count, status: status))
             }
             await progress(ResolveProgress(done: index + 1, total: tiles.count))
         }
     }
 
-    func neighbourhoodStats(city: Int64) throws -> [PlaceStat] {
-        try stats(where: "p.kind = 'neighbourhood' AND p.parent = ?", [.int(city)])
+    func childStats(of parent: Int64, level: PlaceLevel) throws -> [PlaceStat] {
+        try stats(where: "p.kind = ? AND p.parent = ?", [.text(level.rawValue), .int(parent)])
     }
 
-    private func resolveNeighbourhoods(in tile: Tile, city: Int64, cityIndex: EdgeIndex,
-                                       status: @Sendable (String) async -> Void) async throws {
-        let inCity = cityIndex.inside(tileX: tile.x, tileY: tile.y, bits: tile.bits)
+    private func resolveChildren(in tile: Tile, key: ChildKey, parentIndex: EdgeIndex,
+                                 ancestors: Set<Int64>, status: @Sendable (String) async -> Void) async throws {
+        let (parent, level) = (key.parent, key.level)
+        let inParent = parentIndex.inside(tileX: tile.x, tileY: tile.y, bits: tile.bits)
         var owner = [Int64?](repeating: nil, count: Self.cellCount)
+        /// Cells a lookup showed belong to no child of this parent (or not one found yet).
+        var excluded = Set<Int>()
+        /// A child OpenStreetMap has only as a point; it gets the cells left over at the end.
+        var point: Int64?
         var lookups = 0
         while true {
-            for (id, index) in neighbourhoods[city] ?? [] {
-                assign(index, to: id, in: tile, owner: &owner, eligible: { inCity[$0] })
+            for (id, index) in children[key] ?? [] {
+                assign(index, to: id, in: tile, owner: &owner, eligible: { inParent[$0] })
             }
             guard lookups < Self.maxLookupsPerTile,
-                  let cell = unassignedCell(tile, owner: owner, eligible: { inCity[$0] })
+                  let cell = unassignedCell(tile, owner: owner, eligible: { inParent[$0] && !excluded.contains($0) })
             else { break }
+            let centre = cellCentre(tile, cell: cell)
+            let gap = Self.gapBlock(centre, level: level)
+            guard try !isGap(gap, key: key) else { break }
             lookups += 1
 
-            await status("Looking up a neighbourhood…")
-            guard let place = try await lookup.place(at: cellCentre(tile, cell: cell), zoom: PlaceZoom.neighbourhood),
-                  // Rural areas answer with the municipality itself: no neighbourhoods there.
-                  place.id != city, self.cities?[place.id] == nil,
-                  !(neighbourhoods[city] ?? []).contains(where: { $0.id == place.id })
-            else { break }
-
-            try insertPlace(place, shape: place.shape, kind: "neighbourhood", parent: city, country: nil)
-            if let shape = place.shape {
-                neighbourhoods[city, default: []].append((place.id, EdgeIndex(shape: shape)))
-                try log("Found \(place.name) (\(StatsView.formatArea(shape.area)))")
-            } else {
-                // A point without a boundary: the rest of this tile's cells go to it.
-                for cell in 0..<Self.cellCount where inCity[cell] && owner[cell] == nil {
-                    owner[cell] = place.id
-                }
-                try log("Found \(place.name) (no boundary)")
+            await status("Looking up a \(level.rawValue)…")
+            guard let place = try await lookup.place(at: centre, zoom: level.zoom) else {
+                excluded.insert(cell)
+                continue
+            }
+            // Answering with the parent (or above) means no place at this level here; remember
+            // the block so nearby tiles don't ask again.
+            if ancestors.contains(place.id) {
+                try addGap(gap, key: key)
                 break
             }
+            // Boundaries don't always nest exactly, so near a border the answer can be the
+            // neighbouring parent's place: a place belongs to the parent holding its centre. A
+            // place already known as a city is never re-filed under another place.
+            guard parentIndex.shape.contains(place.centre), self.cities?[place.id] == nil else {
+                if let shape = place.shape {
+                    let inside = EdgeIndex(shape: shape).inside(tileX: tile.x, tileY: tile.y, bits: tile.bits)
+                    excluded.formUnion((0..<Self.cellCount).filter { inside[$0] })
+                }
+                excluded.insert(cell)
+                continue
+            }
+            guard !(children[key] ?? []).contains(where: { $0.id == place.id }), place.id != point else {
+                excluded.insert(cell)
+                continue
+            }
+
+            try insertPlace(place, shape: place.shape, level: level, parent: parent, country: nil)
+            if let shape = place.shape {
+                children[key, default: []].append((place.id, EdgeIndex(shape: shape)))
+                try log("Found \(place.name) (\(StatsView.formatArea(shape.area)))")
+            } else {
+                point = point ?? place.id
+                excluded.insert(cell)
+                try log("Found \(place.name) (no boundary in OpenStreetMap)")
+            }
         }
-        try save(tile, kind: "neighbourhood", owner: owner, stateTable: "tile_neighbourhoods")
+        // OpenStreetMap has the point-only place without an extent, so it gets this tile's cells
+        // that no boundary claimed, and no percentage.
+        if let point {
+            for cell in 0..<Self.cellCount where inParent[cell] && owner[cell] == nil {
+                owner[cell] = point
+            }
+        }
+        try save(tile, owner: owner, scope: .children(key))
+    }
+
+    // MARK: - Gaps
+
+    /// Blocks for remembering "no place at this level here", so a city without districts costs
+    /// about one lookup per block explored rather than per map tile. A remembered gap only skips
+    /// lookups; boundaries found elsewhere still claim their cells inside it. Blocks are about
+    /// 1 km for districts (zoom 15) and 500 m for neighbourhoods (zoom 16), at mid latitudes.
+    private static func gapBlock(_ coordinate: CLLocationCoordinate2D, level: PlaceLevel) -> (x: Int, y: Int) {
+        let zoom = level == .district ? 15 : 16
+        let position = FogGrid.cellPosition(of: coordinate, zoom: zoom)
+        return (Int(position.x), Int(position.y))
+    }
+
+    private func isGap(_ block: (x: Int, y: Int), key: ChildKey) throws -> Bool {
+        try database().query(
+            "SELECT 1 FROM place_gaps WHERE parent = ? AND level = ? AND x = ? AND y = ?",
+            [.int(key.parent), .text(key.level.rawValue), .int(Int64(block.x)), .int(Int64(block.y))]
+        ) { _ in true }.first ?? false
+    }
+
+    private func addGap(_ block: (x: Int, y: Int), key: ChildKey) throws {
+        try database().run(
+            "INSERT OR REPLACE INTO place_gaps (parent, level, x, y) VALUES (?, ?, ?, ?)",
+            [.int(key.parent), .text(key.level.rawValue), .int(Int64(block.x)), .int(Int64(block.y))]
+        )
     }
 
     // MARK: - Cells
@@ -204,7 +271,7 @@ actor PlaceResolver {
 
     private func database() throws -> Database {
         if let db { return db }
-        let db = try Database(path: databaseURL.path)
+        let db = try Database(path: databaseURL.path, create: false)
         self.db = db
         return db
     }
@@ -212,17 +279,34 @@ actor PlaceResolver {
     private func loadCities() throws -> [Int64: EdgeIndex] {
         if let cities { return cities }
         var loaded: [Int64: EdgeIndex] = [:]
-        for (id, shape) in try shapes(where: "kind = 'city'", []) {
+        for (id, shape) in try shapes(where: "kind = ?", [.text(PlaceLevel.city.rawValue)]) {
             loaded[id] = EdgeIndex(shape: shape)
         }
         cities = loaded
         return loaded
     }
 
-    private func loadNeighbourhoods(city: Int64) throws {
-        guard neighbourhoods[city] == nil else { return }
-        neighbourhoods[city] = try shapes(where: "kind = 'neighbourhood' AND parent = ?", [.int(city)])
+    private func loadChildren(_ key: ChildKey) throws {
+        guard children[key] == nil else { return }
+        children[key] = try shapes(where: "parent = ? AND kind = ?", [.int(key.parent), .text(key.level.rawValue)])
             .map { ($0.id, EdgeIndex(shape: $0.shape)) }
+    }
+
+    private func shapeIndex(_ id: Int64) throws -> EdgeIndex? {
+        if let city = try loadCities()[id] { return city }
+        if let child = children.values.lazy.flatMap({ $0 }).first(where: { $0.id == id }) { return child.index }
+        return try shapes(where: "id = ?", [.int(id)]).first.map { EdgeIndex(shape: $0.shape) }
+    }
+
+    /// The place and every place above it, up to the city.
+    private func ancestorIDs(of id: Int64) throws -> Set<Int64> {
+        var result: Set<Int64> = [id]
+        var current = id
+        while let parent = try database().query("SELECT parent FROM places WHERE id = ?", [.int(current)], map: { $0.int(0) }).first,
+              parent != 0, result.insert(parent).inserted {
+            current = parent
+        }
+        return result
     }
 
     private func shapes(where condition: String, _ bindings: [SQLValue]) throws -> [(id: Int64, shape: PlaceShape)] {
@@ -235,11 +319,11 @@ actor PlaceResolver {
         }
     }
 
-    private func insertPlace(_ place: OSMPlace, shape: PlaceShape?, kind: String, parent: Int64?, country: String?) throws {
+    private func insertPlace(_ place: OSMPlace, shape: PlaceShape?, level: PlaceLevel, parent: Int64?, country: String?) throws {
         let json = try shape.map { String(decoding: try JSONEncoder().encode($0), as: UTF8.self) } ?? ""
         try database().run(
             "INSERT OR REPLACE INTO places (id, name, english, kind, parent, country, area, shape, lat, lon) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [.int(place.id), .text(place.name), .text(place.englishName ?? ""), .text(kind), .int(parent ?? 0),
+            [.int(place.id), .text(place.name), .text(place.englishName ?? ""), .text(level.rawValue), .int(parent ?? 0),
              .text(country ?? ""), .double(shape?.area ?? 0), .text(json),
              .double(place.centre.latitude), .double(place.centre.longitude)]
         )
@@ -247,42 +331,16 @@ actor PlaceResolver {
 
     /// The country's explored tiles that changed since cities were last assigned, most explored first.
     private func pendingCityTiles(country: String, countries: CountryIndex) throws -> [Tile] {
-        let fineZoom = FogGrid.fineTileZoom
-        let tileCount = Double(FogGrid.cellCount(zoom: fineZoom))
-        let rows = try database().query(
+        let db = try database()
+        try TileCountries.update(db, countries: countries)
+        return try db.query(
             """
             SELECT t.x, t.y, t.bits, p.cells FROM tiles t
+            JOIN tile_countries c ON c.x = t.x AND c.y = t.y
             LEFT JOIN tile_places p ON p.x = t.x AND p.y = t.y
-            WHERE t.z = ?
+            WHERE t.z = ? AND c.country = ?
             """,
-            [.int(Int64(fineZoom))]
-        ) { row in
-            (x: Int(row.int(0)), y: Int(row.int(1)), bits: TileBits(data: row.blob(2)), cells: Int(row.int(3)))
-        }
-        return rows.compactMap { row -> Tile? in
-            guard let bits = row.bits, bits.count != row.cells else { return nil }
-            // Same tile-centre rule as the country stats, so the numbers agree.
-            let centre = CLLocationCoordinate2D(
-                latitude: FogGrid.latitude(ofCellY: Double(row.y) + 0.5, zoom: fineZoom),
-                longitude: (Double(row.x) + 0.5) / tileCount * 360 - 180
-            )
-            guard countries.country(at: centre)?.code == country else { return nil }
-            return Tile(x: row.x, y: row.y, bits: bits)
-        }
-        .sorted { $0.bits.count > $1.bits.count }
-    }
-
-    /// The city's tiles that changed since neighbourhoods were last assigned, most explored first.
-    private func pendingNeighbourhoodTiles(city: Int64) throws -> [Tile] {
-        let fineZoom = FogGrid.fineTileZoom
-        return try database().query(
-            """
-            SELECT t.x, t.y, t.bits, n.cells FROM tile_place_areas a
-            JOIN tiles t ON t.z = ? AND t.x = a.x AND t.y = a.y
-            LEFT JOIN tile_neighbourhoods n ON n.x = a.x AND n.y = a.y
-            WHERE a.place = ?
-            """,
-            [.int(Int64(fineZoom)), .int(city)]
+            [.int(Int64(FogGrid.fineTileZoom)), .text(country)]
         ) { row in
             (x: Int(row.int(0)), y: Int(row.int(1)), bits: TileBits(data: row.blob(2)), cells: Int(row.int(3)))
         }
@@ -293,27 +351,64 @@ actor PlaceResolver {
         .sorted { $0.bits.count > $1.bits.count }
     }
 
-    /// Replaces the tile's areas for places of `kind` and records it as up to date.
-    private func save(_ tile: Tile, kind: String, owner: [Int64?], stateTable: String) throws {
+    /// The parent's tiles that changed since its children at this level were last assigned,
+    /// most explored first.
+    private func pendingChildTiles(_ key: ChildKey) throws -> [Tile] {
+        try database().query(
+            """
+            SELECT t.x, t.y, t.bits, c.cells FROM tile_place_areas a
+            JOIN tiles t ON t.z = ? AND t.x = a.x AND t.y = a.y
+            LEFT JOIN tile_children c ON c.x = a.x AND c.y = a.y AND c.parent = a.place AND c.level = ?
+            WHERE a.place = ?
+            """,
+            [.int(Int64(FogGrid.fineTileZoom)), .text(key.level.rawValue), .int(key.parent)]
+        ) { row in
+            (x: Int(row.int(0)), y: Int(row.int(1)), bits: TileBits(data: row.blob(2)), cells: Int(row.int(3)))
+        }
+        .compactMap { row -> Tile? in
+            guard let bits = row.bits, bits.count != row.cells else { return nil }
+            return Tile(x: row.x, y: row.y, bits: bits)
+        }
+        .sorted { $0.bits.count > $1.bits.count }
+    }
+
+    private enum SaveScope {
+        case cities
+        case children(ChildKey)
+    }
+
+    /// Replaces the tile's areas for the places in `scope` and records the tile as up to date.
+    private func save(_ tile: Tile, owner: [Int64?], scope: SaveScope) throws {
         var totals: [Int64: Double] = [:]
         for cell in 0..<Self.cellCount {
             if let id = owner[cell] {
                 totals[id, default: 0] += FogGrid.cellArea(row: tile.y * FogGrid.cellsPerTile + cell / FogGrid.cellsPerTile)
             }
         }
-        let x = Int64(tile.x), y = Int64(tile.y)
+        let x = Int64(tile.x), y = Int64(tile.y), cells = Int64(tile.bits.count)
         let db = try database()
         try db.transaction {
-            try db.run(
-                "DELETE FROM tile_place_areas WHERE x = ? AND y = ? AND place IN (SELECT id FROM places WHERE kind = ?)",
-                [.int(x), .int(y), .text(kind)]
-            )
+            switch scope {
+            case .cities:
+                try db.run(
+                    "DELETE FROM tile_place_areas WHERE x = ? AND y = ? AND place IN (SELECT id FROM places WHERE kind = ?)",
+                    [.int(x), .int(y), .text(PlaceLevel.city.rawValue)]
+                )
+                try db.run("INSERT OR REPLACE INTO tile_places (x, y, cells) VALUES (?, ?, ?)", [.int(x), .int(y), .int(cells)])
+            case .children(let key):
+                try db.run(
+                    "DELETE FROM tile_place_areas WHERE x = ? AND y = ? AND place IN (SELECT id FROM places WHERE parent = ? AND kind = ?)",
+                    [.int(x), .int(y), .int(key.parent), .text(key.level.rawValue)]
+                )
+                try db.run(
+                    "INSERT OR REPLACE INTO tile_children (x, y, parent, level, cells) VALUES (?, ?, ?, ?, ?)",
+                    [.int(x), .int(y), .int(key.parent), .text(key.level.rawValue), .int(cells)]
+                )
+            }
             for (place, area) in totals {
                 try db.run("INSERT INTO tile_place_areas (x, y, place, area) VALUES (?, ?, ?, ?)",
                            [.int(x), .int(y), .int(place), .double(area)])
             }
-            try db.run("INSERT OR REPLACE INTO \(stateTable) (x, y, cells) VALUES (?, ?, ?)",
-                       [.int(x), .int(y), .int(Int64(tile.bits.count))])
         }
     }
 

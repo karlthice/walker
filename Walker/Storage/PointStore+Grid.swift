@@ -31,7 +31,7 @@ extension PointStore {
             try db.run("DELETE FROM daily")
             // Place assignments are per tile; tiles change meaning when the grid does.
             try db.run("DELETE FROM tile_places")
-            try db.run("DELETE FROM tile_neighbourhoods")
+            try db.run("DELETE FROM tile_children")
             try db.run("DELETE FROM tile_place_areas")
             try db.run("DELETE FROM meta WHERE key = 'revealedThrough'")
             try setMeta("gridVersion", "\(version)", in: db)

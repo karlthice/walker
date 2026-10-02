@@ -185,17 +185,33 @@ final class PointStore {
                 lon REAL
             );
             CREATE INDEX IF NOT EXISTS places_parent ON places(parent);
+            CREATE TABLE IF NOT EXISTS tile_countries (
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                country TEXT NOT NULL,
+                PRIMARY KEY (x, y)
+            ) WITHOUT ROWID;
             CREATE TABLE IF NOT EXISTS tile_places (
                 x INTEGER NOT NULL,
                 y INTEGER NOT NULL,
                 cells INTEGER NOT NULL,
                 PRIMARY KEY (x, y)
             ) WITHOUT ROWID;
-            CREATE TABLE IF NOT EXISTS tile_neighbourhoods (
+            DROP TABLE IF EXISTS tile_neighbourhoods;
+            CREATE TABLE IF NOT EXISTS tile_children (
                 x INTEGER NOT NULL,
                 y INTEGER NOT NULL,
+                parent INTEGER NOT NULL,
+                level TEXT NOT NULL,
                 cells INTEGER NOT NULL,
-                PRIMARY KEY (x, y)
+                PRIMARY KEY (x, y, parent, level)
+            ) WITHOUT ROWID;
+            CREATE TABLE IF NOT EXISTS place_gaps (
+                parent INTEGER NOT NULL,
+                level TEXT NOT NULL,
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                PRIMARY KEY (parent, level, x, y)
             ) WITHOUT ROWID;
             CREATE TABLE IF NOT EXISTS tile_place_areas (
                 x INTEGER NOT NULL,

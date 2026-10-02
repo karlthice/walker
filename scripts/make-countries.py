@@ -5,7 +5,7 @@ countries.json bundled with the app.
     curl -LO https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson
     python3 scripts/make-countries.py ne_50m_admin_0_countries.geojson Walker/Resources/countries.json
 
-Output: [{"name", "code", "areaKm2", "bbox": [minLon, minLat, maxLon, maxLat],
+Output: [{"name", "code", "iso2", "areaKm2", "bbox": [minLon, minLat, maxLon, maxLat],
           "rings": [[lon, lat, lon, lat, ...], ...]}]
 Rings include holes; point-in-country uses the even-odd rule across all rings.
 """
@@ -38,9 +38,12 @@ def main(source, destination):
                 rings.append(ring)
         lons = [lon for ring in rings for lon, _ in ring]
         lats = [lat for ring in rings for _, lat in ring]
+        # ISO_A2 is -99 for a few countries (France, Norway); ISO_A2_EH fills those in.
+        iso2 = next((c for c in (props.get("ISO_A2_EH"), props.get("ISO_A2")) if c and len(c) == 2 and c.isalpha()), None)
         countries.append({
             "name": props["NAME"],
             "code": props["ADM0_A3"],
+            "iso2": iso2,
             "areaKm2": round(area / 1e6, 1),
             "bbox": [min(lons), min(lats), max(lons), max(lats)],
             "rings": [[value for point in ring for value in point] for ring in rings],

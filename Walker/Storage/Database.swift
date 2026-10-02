@@ -16,9 +16,9 @@ struct DatabaseError: Error, CustomStringConvertible {
 final class Database {
     private var handle: OpaquePointer?
 
-    /// Pass ":memory:" for an in-memory database.
-    init(path: String, readOnly: Bool = false) throws {
-        let access = readOnly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+    /// Pass ":memory:" for an in-memory database. With `create: false`, a missing file is an error.
+    init(path: String, readOnly: Bool = false, create: Bool = true) throws {
+        let access = readOnly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | (create ? SQLITE_OPEN_CREATE : 0)
         let flags = access | SQLITE_OPEN_FULLMUTEX
         guard sqlite3_open_v2(path, &handle, flags, nil) == SQLITE_OK else {
             let message = handle.map { String(cString: sqlite3_errmsg($0)) } ?? "unknown error"

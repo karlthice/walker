@@ -8,12 +8,16 @@ import CoreLocation
 final class Revealer {
     /// Clears about a 50 m wide path: the street walked and the buildings along it.
     nonisolated static let radius: CLLocationDistance = 25
-    /// Consecutive points are joined by a strip only if they are this close in time...
+    /// Consecutive points are joined by a strip if they are this close in time...
     nonisolated static let maxGap: TimeInterval = 10 * 60
     /// ...and the implied speed is plausible, so a bad fix doesn't clear a stripe across town.
     nonisolated static let maxSpeed: CLLocationSpeed = 200 / 3.6
+    /// Points this close are joined after a longer stop too. While you sit in a restaurant
+    /// iOS pauses GPS, and the first fix after you leave comes a few hundred metres on.
+    nonisolated static let maxStopDistance: CLLocationDistance = 500
+    nonisolated static let maxStopGap: TimeInterval = 2 * 60 * 60
     /// Bump when the reveal rules change; the grid is then rebuilt from the raw points.
-    static let version = 3
+    static let version = 4
 
     private let store: PointStore
 
@@ -73,8 +77,12 @@ final class Revealer {
 
     nonisolated static func shouldConnect(_ a: LocationPoint, _ b: LocationPoint) -> Bool {
         let gap = b.timestamp.timeIntervalSince(a.timestamp)
-        guard gap > 0, gap <= maxGap else { return false }
-        return distance(a, b) / gap <= maxSpeed
+        guard gap > 0 else { return false }
+        let distance = distance(a, b)
+        if gap <= maxGap {
+            return distance / gap <= maxSpeed
+        }
+        return gap <= maxStopGap && distance <= maxStopDistance
     }
 
     /// Great-circle distance in metres (haversine).

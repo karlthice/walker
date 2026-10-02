@@ -33,6 +33,11 @@ struct RevealerTests {
         #expect(!Revealer.shouldConnect(a, point(offset(reykjavik, east: 1000), after: 10)))
         // Out of order.
         #expect(!Revealer.shouldConnect(point(reykjavik, after: 60), a))
+        // After a stop: GPS paused in a restaurant, first fix 300 m on, 40 minutes later.
+        #expect(Revealer.shouldConnect(a, point(offset(reykjavik, east: 300), after: 40 * 60)))
+        // But not across town, or after hours away.
+        #expect(!Revealer.shouldConnect(a, point(offset(reykjavik, east: 800), after: 40 * 60)))
+        #expect(!Revealer.shouldConnect(a, point(offset(reykjavik, east: 300), after: 3 * 60 * 60)))
     }
 
     @Test func catchUpRevealsStripBetweenPoints() throws {

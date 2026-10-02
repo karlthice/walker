@@ -12,8 +12,9 @@ struct PointFilter {
         case tooClose
     }
 
-    /// A fix off by more than this would clear the wrong street with a 25 m reveal radius.
-    var maxAccuracy: CLLocationAccuracy = 35
+    /// Rejects the ±65 m fixes iOS reports when it only has Wi-Fi, which would clear the
+    /// wrong street, while keeping GPS fixes degraded by buildings or a pocket.
+    var maxAccuracy: CLLocationAccuracy = 50
     var minDistance: CLLocationDistance = 15
     private(set) var last: CLLocation?
 

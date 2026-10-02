@@ -153,7 +153,7 @@ struct StatsView: View {
             ForEach(countries) { country in
                 NavigationLink(value: PlaceListView.Scope.country(country)) {
                 HStack {
-                    Text(country.name)
+                    Text([country.flag, country.name].compactMap { $0 }.joined(separator: " "))
                     Spacer()
                     VStack(alignment: .trailing) {
                         Text(country.fraction.formatted(.percent.precision(.significantDigits(2))))

@@ -5,7 +5,7 @@ import UIKit
 /// Keeps location tracking alive in the background without the app being opened.
 ///
 /// - Moving: standard updates at the best accuracy, one every ~20 m, so the narrow reveal follows streets.
-/// - Paused by iOS (stationary): a 150 m geofence around the last position; exiting it restarts updates.
+/// - Paused by iOS (stationary): a 100 m geofence around the last position; exiting it restarts updates.
 /// - Backups: significant location changes and visit departures also restart updates, and
 ///   relaunch the app if iOS terminated it.
 @MainActor
@@ -19,7 +19,8 @@ final class LocationService: NSObject {
         case paused = "Paused (geofence armed)"
     }
 
-    private static let geofenceRadius: CLLocationDistance = 150
+    /// About the smallest radius region monitoring handles reliably.
+    private static let geofenceRadius: CLLocationDistance = 100
     private static let geofenceID = "resume"
     private static let enabledKey = "trackingEnabled"
     private static let askedForAlwaysKey = "askedForAlways"
@@ -48,6 +49,8 @@ final class LocationService: NSObject {
     @ObservationIgnored private let revealer: Revealer
     @ObservationIgnored private let manager = CLLocationManager()
     @ObservationIgnored private var filter = PointFilter()
+    /// A run of fixes rejected as imprecise, logged when it ends so gaps can be explained.
+    @ObservationIgnored private var imprecise: (count: Int, best: CLLocationAccuracy, since: Date, until: Date)?
     @ObservationIgnored private var monitor: Task<CLMonitor, Never>?
     @ObservationIgnored private var bootstrapped = false
 
@@ -70,7 +73,8 @@ final class LocationService: NSObject {
 
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 20
-        manager.activityType = .other
+        // Walking: iOS pauses less eagerly than for .other, e.g. while waiting at a crossing.
+        manager.activityType = .fitness
         manager.pausesLocationUpdatesAutomatically = true
         manager.allowsBackgroundLocationUpdates = true
         manager.showsBackgroundLocationIndicator = false
@@ -140,6 +144,7 @@ final class LocationService: NSObject {
     }
 
     private func stop() {
+        imprecise = nil
         manager.stopUpdatingLocation()
         manager.stopMonitoringSignificantLocationChanges()
         manager.stopMonitoringVisits()
@@ -155,20 +160,34 @@ final class LocationService: NSObject {
         }
         var accepted = false
         for location in locations {
-            if filter.evaluate(location) == .accept {
+            let verdict = filter.evaluate(location)
+            if verdict == .accept {
                 let point = LocationPoint(location)
                 store.insert(point)
                 lastAccepted = point
                 acceptedThisSession += 1
                 accepted = true
+                logImpreciseRun()
             } else {
                 rejectedThisSession += 1
+                // Invalid fixes (negative accuracy) say nothing about signal quality.
+                if verdict == .inaccurate, location.horizontalAccuracy >= 0 {
+                    let best = min(imprecise?.best ?? .infinity, location.horizontalAccuracy)
+                    imprecise = ((imprecise?.count ?? 0) + 1, best, imprecise?.since ?? location.timestamp, location.timestamp)
+                }
             }
         }
         if accepted {
             revealFog()
         }
         revision += 1
+    }
+
+    private func logImpreciseRun() {
+        defer { imprecise = nil }
+        guard let run = imprecise, run.count >= 3 else { return }
+        let minutes = Int(run.until.timeIntervalSince(run.since) / 60)
+        log(.info, "Skipped \(run.count) imprecise fixes over \(minutes) min (best ±\(Int(run.best)) m)")
     }
 
     private func revealFog(rebuildIfNeeded: Bool = false) {
@@ -257,6 +276,8 @@ extension LocationService: CLLocationManagerDelegate {
     nonisolated func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager) {
         MainActor.assumeIsolated {
             state = .paused
+            // A run of imprecise fixes ends with the pause, not when updates resume hours later.
+            logImpreciseRun()
             if let coordinate = self.manager.location?.coordinate ?? lastAccepted?.coordinate {
                 armGeofence(at: coordinate)
             } else {

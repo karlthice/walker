@@ -1,31 +1,47 @@
 import SwiftUI
 
-/// Cities in a country, or neighbourhoods in a city, with the area explored in each.
-/// Boundaries come from OpenStreetMap and are looked up the first time they're needed.
+/// The places one level down from a country (cities) or from a city or district, with the
+/// area explored in each. Boundaries come from OpenStreetMap, looked up the first time needed.
 struct PlaceListView: View {
     enum Scope: Hashable {
         case country(CountryStat)
-        case city(PlaceStat)
+        /// A place and its own level.
+        case place(PlaceStat, PlaceLevel)
 
         var title: String {
             switch self {
+            case .country(let country): [country.flag, country.name].compactMap { $0 }.joined(separator: " ")
+            case .place(let place, _): place.name
+            }
+        }
+
+        var name: String {
+            switch self {
             case .country(let country): country.name
-            case .city(let city): city.name
+            case .place(let place, _): place.name
             }
         }
 
         var exploredArea: Double {
             switch self {
             case .country(let country): country.exploredArea
-            case .city(let city): city.exploredArea
+            case .place(let place, _): place.exploredArea
+            }
+        }
+
+        /// The level listed; a city without districts lists its neighbourhoods instead.
+        var childLevel: PlaceLevel? {
+            switch self {
+            case .country: .city
+            case .place(_, let level): level.below
             }
         }
     }
 
     let scope: Scope
 
-    @Environment(LocationService.self) private var service
     @State private var places: [PlaceStat]?
+    @State private var listedLevel: PlaceLevel?
     @State private var progress: ResolveProgress?
     @State private var error: String?
 
@@ -51,12 +67,14 @@ struct PlaceListView: View {
             Section {
                 if let places {
                     if places.isEmpty && progress == nil && error == nil {
-                        Text(emptyText)
+                        Text("OpenStreetMap has no smaller places here.")
                             .foregroundStyle(.secondary)
                     }
+                    let level = listedLevel ?? scope.childLevel
                     ForEach(places) { place in
-                        if case .country = scope {
-                            NavigationLink(value: Scope.city(place)) { PlaceRow(place: place) }
+                        // Only a place with a boundary can have places found inside it.
+                        if let level, level.below != nil, place.totalArea > 0 {
+                            NavigationLink(value: Scope.place(place, level)) { PlaceRow(place: place) }
                         } else {
                             PlaceRow(place: place)
                         }
@@ -65,7 +83,7 @@ struct PlaceListView: View {
                     // Ignore rounding noise; show only a meaningful remainder.
                     if elsewhere > max(scope.exploredArea * 0.01, 100) {
                         HStack {
-                            Text("Elsewhere in \(scope.title)")
+                            Text("Elsewhere in \(scope.name)")
                                 .foregroundStyle(.secondary)
                             Spacer()
                             Text(StatsView.formatArea(elsewhere))
@@ -88,23 +106,17 @@ struct PlaceListView: View {
     }
 
     private var sectionTitle: String {
-        switch scope {
-        case .country: "Cities and municipalities"
-        case .city: "Neighbourhoods"
-        }
-    }
-
-    private var emptyText: String {
-        switch scope {
-        case .country: "No places found."
-        case .city: "OpenStreetMap has no neighbourhoods here."
+        switch listedLevel ?? scope.childLevel {
+        case .city: "Cities and municipalities"
+        case .district: "Districts"
+        case .neighbourhood, nil: "Neighbourhoods"
         }
     }
 
     private var footer: String {
         var text = "Boundaries © OpenStreetMap contributors."
-        if case .city = scope, places?.contains(where: { $0.fraction == nil }) == true {
-            text = "Some neighbourhoods here are mapped as points without boundaries, so they get the explored area around them and no percentage. " + text
+        if places?.contains(where: { $0.fraction == nil }) == true {
+            text = "Places OpenStreetMap has only as a point, without a boundary, show the area explored but no percentage. " + text
         }
         return text
     }
@@ -121,12 +133,24 @@ struct PlaceListView: View {
                     await show(update) { try? await resolver.cityStats(country: country.code) }
                 }
                 places = try await resolver.cityStats(country: country.code)
-            case .city(let city):
-                places = try await resolver.neighbourhoodStats(city: city.id)
-                try await resolver.resolveNeighbourhoods(city: city.id) { update in
-                    await show(update) { try? await resolver.neighbourhoodStats(city: city.id) }
+            case .place(let place, _):
+                guard var level = scope.childLevel else { return }
+                while true {
+                    let current = level
+                    listedLevel = current
+                    places = try await resolver.childStats(of: place.id, level: current)
+                    try await resolver.resolveChildren(of: place.id, level: current) { update in
+                        await show(update) { try? await resolver.childStats(of: place.id, level: current) }
+                    }
+                    let found = try await resolver.childStats(of: place.id, level: current)
+                    // No places at this level here (Kanazawa has no districts): go one level down.
+                    if found.isEmpty, let next = current.below {
+                        level = next
+                        continue
+                    }
+                    places = found
+                    break
                 }
-                places = try await resolver.neighbourhoodStats(city: city.id)
             }
         } catch is CancellationError {
         } catch {

@@ -1,4 +1,5 @@
 import CoreLocation
+import CryptoKit
 
 /// Country borders bundled with the app (Natural Earth 1:50m, public domain), built by
 /// `scripts/make-countries.py`. Works offline; no coordinates leave the phone.
@@ -6,11 +7,20 @@ final class CountryIndex: Sendable {
     struct Country: Decodable, Sendable {
         let name: String
         let code: String
+        /// ISO 3166-1 alpha-2, missing for a few disputed areas.
+        let iso2: String?
         let areaKm2: Double
         /// minLon, minLat, maxLon, maxLat
         let bbox: [Double]
         /// Each ring is flattened lon, lat pairs; holes are included and handled by the even-odd rule.
         let rings: [[Double]]
+
+        /// The flag emoji, made of the regional indicator symbols for the two letters.
+        var flag: String? {
+            guard let iso2 else { return nil }
+            let scalars = iso2.uppercased().unicodeScalars.compactMap { UnicodeScalar(0x1F1E6 - 0x41 + $0.value) }
+            return scalars.count == 2 ? String(String.UnicodeScalarView(scalars)) : nil
+        }
 
         func boxContains(_ c: CLLocationCoordinate2D, margin: Double = 0) -> Bool {
             c.longitude >= bbox[0] - margin && c.latitude >= bbox[1] - margin
@@ -55,9 +65,12 @@ final class CountryIndex: Sendable {
     }()
 
     let countries: [Country]
+    /// Identifies this version of the borders, so results computed from older ones are redone.
+    let checksum: String
 
     init(data: Data) throws {
         countries = try JSONDecoder().decode([Country].self, from: data)
+        checksum = SHA256.hash(data: data).prefix(8).map { String(format: "%02x", $0) }.joined()
     }
 
     func country(at coordinate: CLLocationCoordinate2D) -> Country? {

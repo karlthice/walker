@@ -29,16 +29,36 @@ struct OSMPlace: Equatable, Sendable {
 
 /// Looks up places; a protocol so tests can stand in for the network.
 protocol PlaceLookup: Sendable {
-    /// The place containing the coordinate at a level of detail: `cityZoom` or `neighbourhoodZoom`.
-    /// nil where there is none (e.g. at sea).
+    /// The place containing the coordinate at a level of detail (a Nominatim zoom), or nil
+    /// where there is none (e.g. at sea).
     func place(at coordinate: CLLocationCoordinate2D, zoom: Int) async throws -> OSMPlace?
 }
 
-enum PlaceZoom {
-    /// City or municipality (Reykjavíkurborg, 金沢市, 新宿区).
-    static let city = 10
-    /// Neighbourhood (Miðbær, 柿木畠, 歌舞伎町一丁目).
-    static let neighbourhood = 14
+/// OpenStreetMap's place hierarchy below the country, as Nominatim's zoom levels expose it.
+/// Where a level doesn't exist, Nominatim answers with the level above, and it is skipped.
+enum PlaceLevel: String, Sendable, Hashable {
+    /// Reykjavíkurborg, Barcelona, 金沢市, 新宿区
+    case city
+    /// Hlíðar, l'Eixample, Ciutat Vella
+    case district
+    /// Miðbær, la Barceloneta, 柿木畠, 歌舞伎町一丁目
+    case neighbourhood
+
+    var zoom: Int {
+        switch self {
+        case .city: 10
+        case .district: 12
+        case .neighbourhood: 14
+        }
+    }
+
+    var below: PlaceLevel? {
+        switch self {
+        case .city: .district
+        case .district: .neighbourhood
+        case .neighbourhood: nil
+        }
+    }
 }
 
 struct PlaceLookupError: Error, LocalizedError {
@@ -51,7 +71,7 @@ actor NominatimClient: PlaceLookup {
     /// Nominatim's usage policy allows at most one request per second.
     private static let minInterval: Duration = .milliseconds(1100)
 
-    private let endpoint = URL(string: "https://nominatim.openstreetmap.org/reverse")!
+    private let endpoint = URL(string: "https://nominatim.openstreetmap.org")!
     private let session: URLSession
     private var nextSlot = ContinuousClock.now
 
@@ -60,7 +80,7 @@ actor NominatimClient: PlaceLookup {
     }
 
     func place(at coordinate: CLLocationCoordinate2D, zoom: Int) async throws -> OSMPlace? {
-        var components = URLComponents(url: endpoint, resolvingAgainstBaseURL: false)!
+        var components = URLComponents(url: endpoint.appending(path: "reverse"), resolvingAgainstBaseURL: false)!
         components.queryItems = [
             URLQueryItem(name: "lat", value: "\(coordinate.latitude)"),
             URLQueryItem(name: "lon", value: "\(coordinate.longitude)"),
@@ -71,7 +91,11 @@ actor NominatimClient: PlaceLookup {
             URLQueryItem(name: "polygon_threshold", value: "0.0001"),
             URLQueryItem(name: "namedetails", value: "1"),
         ]
-        var request = URLRequest(url: components.url!)
+        return try NominatimResponse.decode(try await get(components.url!))
+    }
+
+    private func get(_ url: URL) async throws -> Data {
+        var request = URLRequest(url: url)
         request.setValue("Walker iOS app (https://github.com/karlthice/walker)", forHTTPHeaderField: "User-Agent")
         request.timeoutInterval = 30
 
@@ -80,7 +104,7 @@ actor NominatimClient: PlaceLookup {
             let (data, response) = try await session.data(for: request)
             let status = (response as? HTTPURLResponse)?.statusCode ?? 0
             if status == 200 {
-                return try NominatimResponse.decode(data)
+                return data
             }
             guard status == 429 || status == 503, attempt < 3 else {
                 throw PlaceLookupError(errorDescription: "OpenStreetMap lookup failed (HTTP \(status)).")
@@ -127,18 +151,21 @@ struct NominatimResponse: Decodable {
     }
 
     static func decode(_ data: Data) throws -> OSMPlace? {
-        let response = try JSONDecoder().decode(NominatimResponse.self, from: data)
-        guard response.error == nil,
-              let type = response.osm_type, let osmID = response.osm_id,
-              let lat = response.lat.flatMap(Double.init), let lon = response.lon.flatMap(Double.init)
+        try JSONDecoder().decode(NominatimResponse.self, from: data).place
+    }
+
+    var place: OSMPlace? {
+        guard error == nil,
+              let osmType = osm_type, let osmID = osm_id,
+              let lat = lat.flatMap(Double.init), let lon = lon.flatMap(Double.init)
         else { return nil }
-        let name = response.namedetails?["name"] ?? response.name ?? "Unnamed"
-        let english = response.namedetails?["name:en"].flatMap { $0 == name ? nil : $0 }
+        let name = namedetails?["name"] ?? self.name ?? "Unnamed"
+        let english = namedetails?["name:en"].flatMap { $0 == name ? nil : $0 }
         return OSMPlace(
-            id: OSMPlace.id(type: type, osmID: osmID),
+            id: OSMPlace.id(type: osmType, osmID: osmID),
             name: name,
             englishName: english,
-            shape: response.geojson.flatMap(shape),
+            shape: geojson.flatMap(Self.shape),
             centre: CLLocationCoordinate2D(latitude: lat, longitude: lon)
         )
     }
