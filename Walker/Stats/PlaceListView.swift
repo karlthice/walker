@@ -26,7 +26,7 @@ struct PlaceListView: View {
 
     @Environment(LocationService.self) private var service
     @State private var places: [PlaceStat]?
-    @State private var progress: (done: Int, total: Int)?
+    @State private var progress: ResolveProgress?
     @State private var error: String?
 
     var body: some View {
@@ -34,7 +34,7 @@ struct PlaceListView: View {
             if let progress, progress.done < progress.total {
                 Section {
                     ProgressView(value: Double(progress.done), total: Double(progress.total)) {
-                        Text("Looking up places…")
+                        Text(progress.status ?? "Looking up places…")
                     } currentValueLabel: {
                         Text("\(progress.done) of \(progress.total) map tiles")
                     }
@@ -55,7 +55,7 @@ struct PlaceListView: View {
                             .foregroundStyle(.secondary)
                     }
                     ForEach(places) { place in
-                        if place.childCount > 0, case .country = scope {
+                        if case .country = scope {
                             NavigationLink(value: Scope.city(place)) { PlaceRow(place: place) }
                         } else {
                             PlaceRow(place: place)
@@ -97,14 +97,14 @@ struct PlaceListView: View {
     private var emptyText: String {
         switch scope {
         case .country: "No places found."
-        case .city: "OpenStreetMap has no neighbourhoods for this city."
+        case .city: "OpenStreetMap has no neighbourhoods here."
         }
     }
 
     private var footer: String {
         var text = "Boundaries © OpenStreetMap contributors."
         if case .city = scope, places?.contains(where: { $0.fraction == nil }) == true {
-            text = "Neighbourhoods here are mapped as points without boundaries, so each explored spot counts for the nearest one and no percentage is shown. " + text
+            text = "Some neighbourhoods here are mapped as points without boundaries, so they get the explored area around them and no percentage. " + text
         }
         return text
     }
@@ -112,29 +112,34 @@ struct PlaceListView: View {
     private func load() async {
         let resolver = PlaceResolver.shared
         error = nil
-        switch scope {
-        case .country(let country):
-            places = try? await resolver.cityStats(country: country.code)
-            guard let index = CountryIndex.shared else { return }
-            do {
-                try await resolver.resolve(country: country.code, countries: index) { done, total in
-                    await MainActor.run {
-                        progress = (done, total)
-                    }
-                    // Refresh the list as places come in, without querying after every tile.
-                    if done == total || done % 10 == 0 {
-                        let updated = try? await resolver.cityStats(country: country.code)
-                        await MainActor.run { places = updated }
-                    }
+        do {
+            switch scope {
+            case .country(let country):
+                places = try await resolver.cityStats(country: country.code)
+                guard let index = CountryIndex.shared else { return }
+                try await resolver.resolveCities(country: country.code, countries: index) { update in
+                    await show(update) { try? await resolver.cityStats(country: country.code) }
                 }
                 places = try await resolver.cityStats(country: country.code)
-            } catch is CancellationError {
-            } catch {
-                self.error = error.localizedDescription
+            case .city(let city):
+                places = try await resolver.neighbourhoodStats(city: city.id)
+                try await resolver.resolveNeighbourhoods(city: city.id) { update in
+                    await show(update) { try? await resolver.neighbourhoodStats(city: city.id) }
+                }
+                places = try await resolver.neighbourhoodStats(city: city.id)
             }
-            progress = nil
-        case .city(let city):
-            places = (try? await resolver.neighbourhoodStats(city: city.id)) ?? []
+        } catch is CancellationError {
+        } catch {
+            self.error = error.localizedDescription
+        }
+        progress = nil
+    }
+
+    /// Shows progress, refreshing the list as places come in (not after every tile).
+    private func show(_ update: ResolveProgress, refresh: () async -> [PlaceStat]?) async {
+        progress = update
+        if update.status == nil, update.done == update.total || update.done % 10 == 0, let updated = await refresh() {
+            places = updated
         }
     }
 }

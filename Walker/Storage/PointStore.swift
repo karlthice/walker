@@ -1,7 +1,7 @@
 import Foundation
 
 enum LogKind: String {
-    case launch, auth, resume, pause, geofence, visit, info, error
+    case launch, auth, resume, pause, geofence, visit, places, info, error
 }
 
 struct LogEvent: Identifiable {
@@ -186,6 +186,12 @@ final class PointStore {
             );
             CREATE INDEX IF NOT EXISTS places_parent ON places(parent);
             CREATE TABLE IF NOT EXISTS tile_places (
+                x INTEGER NOT NULL,
+                y INTEGER NOT NULL,
+                cells INTEGER NOT NULL,
+                PRIMARY KEY (x, y)
+            ) WITHOUT ROWID;
+            CREATE TABLE IF NOT EXISTS tile_neighbourhoods (
                 x INTEGER NOT NULL,
                 y INTEGER NOT NULL,
                 cells INTEGER NOT NULL,

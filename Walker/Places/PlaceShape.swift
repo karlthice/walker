@@ -112,29 +112,6 @@ struct PlaceShape: Codable, Equatable, Sendable {
             && coordinate.latitude >= bbox[1] && coordinate.latitude <= bbox[3]
             && PolygonMath.contains(rings: rings, longitude: coordinate.longitude, latitude: coordinate.latitude)
     }
-
-    /// Joins OSM way geometries into closed rings. Ways share end nodes exactly.
-    static func assembleRings(_ ways: [[CLLocationCoordinate2D]]) -> [[Double]] {
-        func same(_ a: CLLocationCoordinate2D, _ b: CLLocationCoordinate2D) -> Bool {
-            a.latitude == b.latitude && a.longitude == b.longitude
-        }
-        var remaining = ways.filter { $0.count >= 2 }
-        var rings: [[Double]] = []
-        while !remaining.isEmpty {
-            var ring = remaining.removeFirst()
-            while !same(ring[0], ring[ring.count - 1]) {
-                guard let index = remaining.firstIndex(where: { same($0[0], ring[ring.count - 1]) || same($0[$0.count - 1], ring[ring.count - 1]) }) else {
-                    break
-                }
-                let way = remaining.remove(at: index)
-                ring += (same(way[0], ring[ring.count - 1]) ? way : way.reversed()).dropFirst()
-            }
-            // An unclosable ring means missing data; drop it rather than guess.
-            guard same(ring[0], ring[ring.count - 1]), ring.count >= 4 else { continue }
-            rings.append(ring.dropLast().flatMap { [$0.longitude, $0.latitude] })
-        }
-        return rings
-    }
 }
 
 /// Edges of a shape bucketed by zoom-16 tile row, so measuring a tile only looks at

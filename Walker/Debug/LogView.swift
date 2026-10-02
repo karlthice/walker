@@ -44,6 +44,7 @@ private extension LogKind {
         case .pause: .orange
         case .geofence: .teal
         case .visit: .blue
+        case .places: .brown
         case .info: .secondary
         case .error: .red
         }

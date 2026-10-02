@@ -191,13 +191,13 @@ struct StatsView: View {
 
     // MARK: - Formatting
 
-    static func formatArea(_ squareMetres: Double) -> String {
+    nonisolated static func formatArea(_ squareMetres: Double) -> String {
         let km2 = squareMetres / 1e6
         let digits = km2 < 1 ? 2 : km2 < 100 ? 1 : 0
         return "\(km2.formatted(.number.precision(.fractionLength(digits)))) km²"
     }
 
-    static func formatDistance(_ metres: Double) -> String {
+    nonisolated static func formatDistance(_ metres: Double) -> String {
         let km = metres / 1000
         return "\(km.formatted(.number.precision(.fractionLength(km < 100 ? 1 : 0)))) km"
     }

@@ -5,128 +5,66 @@ import Testing
 
 private final class BundleToken {}
 
-private func reykjavikAreas() throws -> [AdminArea] {
-    let url = try #require(Bundle(for: BundleToken.self).url(forResource: "reykjavik-overpass", withExtension: "json"))
-    return try JSONDecoder().decode(OverpassResponse.self, from: Data(contentsOf: url)).areas
+private func fixture(_ name: String) throws -> OSMPlace? {
+    let url = try #require(Bundle(for: BundleToken.self).url(forResource: name, withExtension: "json"))
+    return try NominatimResponse.decode(Data(contentsOf: url))
 }
 
 private let miðborgPoint = CLLocationCoordinate2D(latitude: 64.1466, longitude: -21.9426)
 private let vesturbærPoint = CLLocationCoordinate2D(latitude: 64.1440, longitude: -21.9620)
 
-struct OverpassParsingTests {
-    @Test func parsesBoundariesWithAreas() throws {
-        let areas = try reykjavikAreas()
-        #expect(Set(areas.map(\.name)) == ["Reykjavíkurborg", "Miðborg", "Vesturbær", "Miðbær"])
-
-        let city = try #require(areas.first { $0.id == 2580605 })
-        #expect(city.level == 6)
+struct NominatimParsingTests {
+    @Test func parsesCityBoundary() throws {
+        let city = try #require(try fixture("nominatim-reykjavik-city"))
+        #expect(city.id == 2580605)
+        #expect(city.name == "Reykjavíkurborg")
+        #expect(city.englishName == "Reykjavik")
         let shape = try #require(city.shape)
-        #expect(shape.rings.count == 7) // mainland plus islands
-        #expect(abs(shape.area / 1e6 - 243.0) < 1)
-
-        let miðborg = try #require(areas.first { $0.name == "Miðborg" }?.shape)
-        #expect(abs(miðborg.area / 1e6 - 3.9) < 0.1)
-        #expect(miðborg.contains(miðborgPoint))
-        #expect(!miðborg.contains(vesturbærPoint))
+        #expect(shape.rings.count >= 2) // mainland plus islands
+        #expect(abs(shape.area / 1e6 - 243) < 3)
+        #expect(shape.contains(miðborgPoint))
+        #expect(shape.contains(vesturbærPoint))
     }
 
-    @Test func parsesPointPlaces() throws {
-        let json = #"{"elements":[{"type":"node","id":42,"lat":36.5613,"lon":136.6562,"tags":{"place":"quarter","name":"片町","name:en":"Katamachi"}}]}"#
-        let areas = try JSONDecoder().decode(OverpassResponse.self, from: Data(json.utf8)).areas
-        let place = try #require(areas.first)
-        #expect(place.id == -42)
-        #expect(place.placeKind == "quarter")
-        #expect(place.englishName == "Katamachi")
-        #expect(place.centre?.latitude == 36.5613)
+    @Test func parsesNeighbourhoodBoundary() throws {
+        let miðbær = try #require(try fixture("nominatim-reykjavik-midbaer"))
+        #expect(miðbær.name == "Miðbær")
+        #expect(miðbær.englishName == nil)
+        let shape = try #require(miðbær.shape)
+        #expect(shape.contains(miðborgPoint))
+        #expect(!shape.contains(vesturbærPoint))
+        #expect(shape.area > 100_000 && shape.area < 2_000_000)
     }
 
-    @Test func picksCityLevel() {
-        func area(_ level: Int) -> AdminArea { AdminArea(id: Int64(level), name: "\(level)", level: level) }
-        // Iceland: country 2, region 5, municipality 6, districts 9 and 10.
-        #expect(AdminArea.city(in: [2, 5, 6, 9, 10].map(area))?.level == 6)
-        // Japan: prefecture 4, city 7.
-        #expect(AdminArea.city(in: [2, 4, 7].map(area))?.level == 7)
-        #expect(AdminArea.city(in: [2].map(area)) == nil)
+    @Test func parsesPointWithoutBoundary() throws {
+        let quarter = try #require(try fixture("nominatim-kanazawa-quarter"))
+        #expect(quarter.id == -8423933937)
+        #expect(quarter.name == "柿木畠")
+        #expect(quarter.englishName == "Kakinokibatake")
+        #expect(quarter.shape == nil)
+    }
+
+    @Test func nothingAtSea() throws {
+        #expect(try fixture("nominatim-ocean") == nil)
+    }
+
+    @Test func idsDoNotCollideAcrossTypes() {
+        #expect(OSMPlace.id(type: "relation", osmID: 5) == 5)
+        #expect(OSMPlace.id(type: "node", osmID: 5) == -5)
+        #expect(OSMPlace.id(type: "way", osmID: 5) == 5 + OSMPlace.wayOffset)
     }
 }
 
-struct RingAssemblyTests {
-    private func c(_ lat: Double, _ lon: Double) -> CLLocationCoordinate2D { .init(latitude: lat, longitude: lon) }
-
-    @Test func joinsWaysInAnyDirection() {
-        // A square split into three ways, one reversed.
-        let rings = PlaceShape.assembleRings([
-            [c(0, 0), c(0, 1)],
-            [c(1, 1), c(1, 0), c(0, 0)],
-            [c(1, 1), c(0, 1)],
-        ])
-        #expect(rings.count == 1)
-        #expect(rings[0].count == 8)
-        #expect(PolygonMath.contains(rings: rings, longitude: 0.5, latitude: 0.5))
-    }
-
-    @Test func dropsRingsThatCannotClose() {
-        #expect(PlaceShape.assembleRings([[c(0, 0), c(0, 1), c(1, 1)]]).isEmpty)
-    }
-
+struct PolygonTests {
     @Test func holesAreExcluded() {
         let outer: [Double] = [0, 0, 4, 0, 4, 4, 0, 4]
         let hole: [Double] = [1, 1, 3, 1, 3, 3, 1, 3]
         #expect(!PolygonMath.contains(rings: [outer, hole], longitude: 2, latitude: 2))
         #expect(PolygonMath.contains(rings: [outer, hole], longitude: 0.5, latitude: 2))
     }
-}
 
-struct NeighbourhoodSelectionTests {
-    @Test func sparseBoundariesWithoutPointsGiveNone() throws {
-        let areas = try reykjavikAreas()
-        let city = try #require(areas.first { $0.id == 2580605 })
-        // The fixture has only two of Reykjavík's ten districts (7 of 243 km²) and no points.
-        #expect(AdminArea.neighbourhoods(in: areas, city: city) == .none)
-    }
-
-    @Test func boundariesWinWhenTheyCoverTheCity() throws {
-        let square: [Double] = [0, 0, 1, 0, 1, 1, 0, 1]
-        let left: [Double] = [0, 0, 0.5, 0, 0.5, 1, 0, 1]
-        let right: [Double] = [0.5, 0, 1, 0, 1, 1, 0.5, 1]
-        func shape(_ ring: [Double]) -> PlaceShape { PlaceShape(rings: [ring], area: PolygonMath.ringArea(ring)) }
-        let city = AdminArea(id: 1, name: "City", level: 7, shape: shape(square))
-        let areas = [
-            city,
-            AdminArea(id: 2, name: "West", level: 9, shape: shape(left)),
-            AdminArea(id: 3, name: "East", level: 9, shape: shape(right)),
-            AdminArea(id: 4, name: "Block", level: 10, shape: shape(left)),
-            AdminArea(id: -5, name: "Quarter", level: 0, centre: .init(latitude: 0.5, longitude: 0.5), placeKind: "quarter"),
-        ]
-        guard case .boundaries(let found) = AdminArea.neighbourhoods(in: areas, city: city) else {
-            Issue.record("Expected boundaries")
-            return
-        }
-        #expect(Set(found.map(\.name)) == ["West", "East"])
-    }
-
-    @Test func pointsWhenBoundariesAreSparse() {
-        let square: [Double] = [0, 0, 1, 0, 1, 1, 0, 1]
-        let corner: [Double] = [0, 0, 0.1, 0, 0.1, 0.1, 0, 0.1]
-        func shape(_ ring: [Double]) -> PlaceShape { PlaceShape(rings: [ring], area: PolygonMath.ringArea(ring)) }
-        let city = AdminArea(id: 1, name: "Kanazawa", level: 7, shape: shape(square))
-        func quarter(_ id: Int64, _ lat: Double) -> AdminArea {
-            AdminArea(id: -id, name: "Q\(id)", level: 0, centre: .init(latitude: lat, longitude: 0.5), placeKind: "quarter")
-        }
-        let areas = [city, AdminArea(id: 2, name: "Corner", level: 9, shape: shape(corner)),
-                     quarter(10, 0.2), quarter(11, 0.5), quarter(12, 0.8),
-                     AdminArea(id: -13, name: "Outside", level: 0, centre: .init(latitude: 2, longitude: 2), placeKind: "quarter")]
-        guard case .points(let found) = AdminArea.neighbourhoods(in: areas, city: city) else {
-            Issue.record("Expected points")
-            return
-        }
-        #expect(found.map(\.name) == ["Q10", "Q11", "Q12"])
-    }
-}
-
-struct LandAreaTests {
     @Test func intersectionOfOverlappingSquares() {
-        // Two 0.1° squares at the equator overlapping by half: about 0.5 × 11.13 km × 11.13 km.
+        // Two 0.1° squares at the equator overlapping by half.
         let a: [Double] = [0, 0, 0.1, 0, 0.1, 0.1, 0, 0.1]
         let b: [Double] = [0.05, 0, 0.15, 0, 0.15, 0.1, 0.05, 0.1]
         let expected = 0.5 * PolygonMath.ringArea(a)
@@ -135,7 +73,7 @@ struct LandAreaTests {
     }
 
     @Test func reykjavikKeepsItsBoundaryArea() throws {
-        let city = try #require(try reykjavikAreas().first { $0.id == 2580605 }?.shape)
+        let city = try #require(try fixture("nominatim-reykjavik-city")?.shape)
         let iceland = try #require(CountryIndex.shared?.countries.first { $0.code == "ISL" })
         #expect(PlaceResolver.landArea(of: city, country: iceland) == city.area)
     }
@@ -149,19 +87,15 @@ struct LandAreaTests {
         #expect(land < shape.area * 0.8)
         #expect(land > 0)
     }
-}
 
-struct EdgeIndexTests {
-    @Test func splitsTileCellsAlongTheBoundary() throws {
-        let areas = try reykjavikAreas()
-        let miðborg = try #require(areas.first { $0.name == "Miðborg" }?.shape)
-        let index = EdgeIndex(shape: miðborg)
-
+    @Test func edgeIndexAgreesWithPointInPolygon() throws {
+        let miðbær = try #require(try fixture("nominatim-reykjavik-midbaer")?.shape)
+        let index = EdgeIndex(shape: miðbær)
         var grid = ExploredGrid()
-        try grid.revealCircle(center: miðborgPoint, radius: 150)
+        try grid.revealCircle(center: miðborgPoint, radius: 300)
+        var checked = 0
         for (key, bits) in grid.tiles where key.zoom == 16 {
             let inside = index.inside(tileX: key.x, tileY: key.y, bits: bits)
-            // Must agree with the plain point-in-polygon test for every explored cell.
             let bounds = EdgeIndex.bounds(tileX: key.x, tileY: key.y)
             let width = (bounds.maxLon - bounds.minLon) / 32
             for cell in 0..<1024 where bits.contains(column: cell % 32, row: cell / 32) {
@@ -169,74 +103,123 @@ struct EdgeIndexTests {
                     latitude: FogGrid.latitude(ofCellY: Double(key.y * 32 + cell / 32) + 0.5),
                     longitude: bounds.minLon + (Double(cell % 32) + 0.5) * width
                 )
-                #expect(inside[cell] == miðborg.contains(centre))
+                #expect(inside[cell] == miðbær.contains(centre))
+                checked += 1
             }
         }
+        #expect(checked > 1000)
     }
 }
 
-/// Stands in for Overpass, answering from the Reykjavík fixture and counting calls.
+/// Stands in for Nominatim: Reykjavíkurborg at city level; Miðbær inside its boundary and
+/// a boundary-less "Melar" point elsewhere at neighbourhood level.
 private actor FakeLookup: PlaceLookup {
-    let areas: [AdminArea]
-    private(set) var isInCalls = 0
-    private(set) var fetchCalls = 0
+    let city: OSMPlace
+    let miðbær: OSMPlace
+    var ruralNeighbourhoods = false
+    private(set) var calls: [Int: Int] = [:]
 
-    init(areas: [AdminArea]) { self.areas = areas }
-
-    func adminAreas(containing coordinate: CLLocationCoordinate2D) async throws -> [AdminArea] {
-        isInCalls += 1
-        return areas.filter { $0.level == 6 && $0.shape?.contains(coordinate) == true }
-            .map { AdminArea(id: $0.id, name: $0.name, level: $0.level) }
+    init() throws {
+        city = try #require(try fixture("nominatim-reykjavik-city"))
+        miðbær = try #require(try fixture("nominatim-reykjavik-midbaer"))
     }
 
-    func areaWithSubdivisions(_ id: Int64) async throws -> [AdminArea] {
-        fetchCalls += 1
-        // Pretend the two districts in the fixture are all of them, by shrinking the coverage bar's denominator.
-        return areas.map { area in
-            guard area.id == id, var shape = area.shape else { return area }
-            shape.area = 1
-            return AdminArea(id: area.id, name: area.name, level: area.level, shape: shape)
-        }
+    func setRural() { ruralNeighbourhoods = true }
+
+    func place(at coordinate: CLLocationCoordinate2D, zoom: Int) async throws -> OSMPlace? {
+        calls[zoom, default: 0] += 1
+        guard city.shape?.contains(coordinate) == true else { return nil }
+        if zoom == PlaceZoom.city || ruralNeighbourhoods { return city }
+        if miðbær.shape?.contains(coordinate) == true { return miðbær }
+        return OSMPlace(id: -1, name: "Melar", shape: nil, centre: vesturbærPoint)
     }
 }
 
 @MainActor
 struct PlaceResolverTests {
-    @Test func resolvesCityAndNeighbourhoodsWithOneFetch() async throws {
+    private func makeStore() throws -> (URL, PointStore) {
         let url = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString).appending(path: "walker.sqlite")
-        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
-
         let store = PointStore(url: url)
-        let revealer = Revealer(store: store)
-        try revealer.rebuild()
-        let start = Date()
-        store.insert(LocationPoint(timestamp: start, latitude: miðborgPoint.latitude, longitude: miðborgPoint.longitude, accuracy: 10))
-        store.insert(LocationPoint(timestamp: start.addingTimeInterval(300), latitude: vesturbærPoint.latitude, longitude: vesturbærPoint.longitude, accuracy: 10))
-        try revealer.catchUp()
+        try Revealer(store: store).rebuild()
+        return (url, store)
+    }
 
-        let lookup = FakeLookup(areas: try reykjavikAreas())
-        let resolver = PlaceResolver(databaseURL: url, lookup: lookup)
-        let index = try #require(CountryIndex.shared)
-        try await resolver.resolve(country: "ISL", countries: index) { _, _ in }
+    private func walk(_ store: PointStore, _ points: [CLLocationCoordinate2D]) throws {
+        var time = Date()
+        for point in points {
+            store.insert(LocationPoint(timestamp: time, latitude: point.latitude, longitude: point.longitude, accuracy: 10))
+            time += 300
+        }
+        try Revealer(store: store).catchUp()
+    }
 
-        #expect(await lookup.fetchCalls == 1)
-
-        let cities = try await resolver.cityStats(country: "ISL")
-        let city = try #require(cities.first)
-        #expect(city.name == "Reykjavíkurborg")
-        #expect(city.childCount == 2)
+    @Test func resolvesCitiesThenNeighbourhoods() async throws {
+        let (url, store) = try makeStore()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        try walk(store, [miðborgPoint, vesturbærPoint])
         let total = store.dailyStats().reduce(0) { $0 + $1.totals.area }
-        #expect(abs(city.exploredArea - total) / total < 0.01)
 
+        let lookup = try FakeLookup()
+        let resolver = PlaceResolver(databaseURL: url, lookup: lookup)
+        let countries = try #require(CountryIndex.shared)
+
+        try await resolver.resolveCities(country: "ISL", countries: countries) { _ in }
+        // Every tile after the first is covered by the cached boundary.
+        #expect(await lookup.calls[PlaceZoom.city] == 1)
+        let city = try #require(try await resolver.cityStats(country: "ISL").first)
+        #expect(city.name == "Reykjavíkurborg")
+        #expect(abs(city.exploredArea - total) / total < 0.01)
+        #expect((city.fraction ?? 0) > 0)
+
+        try await resolver.resolveNeighbourhoods(city: city.id) { _ in }
         let neighbourhoods = try await resolver.neighbourhoodStats(city: city.id)
-        #expect(Set(neighbourhoods.map(\.name)) == ["Miðborg", "Vesturbær"])
+        #expect(Set(neighbourhoods.map(\.name)) == ["Miðbær", "Melar"])
+        #expect((neighbourhoods.first { $0.name == "Miðbær" }?.fraction ?? 0) > 0)
+        #expect(neighbourhoods.first { $0.name == "Melar" }?.fraction == nil)
         let split = neighbourhoods.reduce(0) { $0 + $1.exploredArea }
         #expect(abs(split - city.exploredArea) / city.exploredArea < 0.01)
-        #expect(neighbourhoods.allSatisfy { ($0.fraction ?? 0) > 0 })
 
-        // Nothing changed, so a second pass does no lookups.
-        let calls = await lookup.isInCalls
-        try await resolver.resolve(country: "ISL", countries: index) { _, _ in }
-        #expect(await lookup.isInCalls == calls)
+        // Nothing changed, so another pass makes no lookups.
+        let before = await lookup.calls
+        try await resolver.resolveCities(country: "ISL", countries: countries) { _ in }
+        try await resolver.resolveNeighbourhoods(city: city.id) { _ in }
+        #expect(await lookup.calls == before)
+
+        // The city's numbers are unaffected by resolving neighbourhoods.
+        #expect(try await resolver.cityStats(country: "ISL").first?.exploredArea == city.exploredArea)
     }
+
+    @Test func ruralMunicipalityHasNoNeighbourhoods() async throws {
+        let (url, store) = try makeStore()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        try walk(store, [miðborgPoint])
+
+        let lookup = try FakeLookup()
+        await lookup.setRural()
+        let resolver = PlaceResolver(databaseURL: url, lookup: lookup)
+        try await resolver.resolveCities(country: "ISL", countries: try #require(CountryIndex.shared)) { _ in }
+        let city = try #require(try await resolver.cityStats(country: "ISL").first)
+
+        try await resolver.resolveNeighbourhoods(city: city.id) { _ in }
+        #expect(try await resolver.neighbourhoodStats(city: city.id).isEmpty)
+    }
+
+    @Test func reportsProgress() async throws {
+        let (url, store) = try makeStore()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        try walk(store, [miðborgPoint, vesturbærPoint])
+
+        let resolver = PlaceResolver(databaseURL: url, lookup: try FakeLookup())
+        let updates = Updates()
+        try await resolver.resolveCities(country: "ISL", countries: try #require(CountryIndex.shared)) { await updates.add($0) }
+        let all = await updates.all
+        #expect(all.first?.done == 0)
+        #expect(all.last.map { $0.done == $0.total } == true)
+        #expect(all.contains { $0.status != nil })
+    }
+}
+
+private actor Updates {
+    var all: [ResolveProgress] = []
+    func add(_ update: ResolveProgress) { all.append(update) }
 }
