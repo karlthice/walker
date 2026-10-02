@@ -59,7 +59,7 @@
 		89DD99ACBEC285D8FF78BB24 /* FogBitmapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FogBitmapTests.swift; sourceTree = "<group>"; };
 		A0C26DC0981BE67277D7CBA0 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		A922A4D8D0D5462766F7ECFF /* PointStore+Grid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PointStore+Grid.swift"; sourceTree = "<group>"; };
-		ADEC1A67ABB8306703DA89A7 /* Walker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Walker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ADEC1A67ABB8306703DA89A7 /* Walker.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Walker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFCDF0E5EAE8BDA952970708 /* TileReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TileReader.swift; sourceTree = "<group>"; };
 		B423DFB1A99C60BC3F3A423D /* PointStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointStore.swift; sourceTree = "<group>"; };
 		BE7A040C53B2788FAF05BE11 /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
@@ -221,10 +221,11 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					8A0FD50D32553CDD01B6F942 = {
+						DevelopmentTeam = YDVNS9MKTZ;
 						ProvisioningStyle = Automatic;
 					};
 					B210D6B1EBDE773463E2D403 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = YDVNS9MKTZ;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -333,7 +334,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = YDVNS9MKTZ;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -360,7 +361,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 2L65AT4ZFS;
 				INFOPLIST_FILE = Walker/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -408,7 +408,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = YDVNS9MKTZ;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -476,7 +476,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 2L65AT4ZFS;
 				INFOPLIST_FILE = Walker/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

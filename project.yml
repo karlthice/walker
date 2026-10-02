@@ -8,7 +8,7 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: YDVNS9MKTZ
 targets:
   Walker:
     type: application
