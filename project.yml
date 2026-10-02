@@ -1,0 +1,50 @@
+name: Walker
+options:
+  bundleIdPrefix: com.karlthoroddsen
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+targets:
+  Walker:
+    type: application
+    platform: iOS
+    sources: [Walker]
+    info:
+      path: Walker/Info.plist
+      properties:
+        CFBundleDisplayName: Walker
+        CFBundleShortVersionString: "0.1"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        UIBackgroundModes: [location]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        NSLocationWhenInUseUsageDescription: Walker uses your location to clear the fog on the map where you have been.
+        NSLocationAlwaysAndWhenInUseUsageDescription: Walker clears the fog wherever you go, even when the app is closed. Your location never leaves this iPhone.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.karlthoroddsen.Walker
+        TARGETED_DEVICE_FAMILY: "1"
+  WalkerTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [WalkerTests]
+    dependencies:
+      - target: Walker
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Walker:
+    build:
+      targets:
+        Walker: all
+        WalkerTests: [test]
+    test:
+      targets: [WalkerTests]
