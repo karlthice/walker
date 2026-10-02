@@ -167,6 +167,11 @@ final class PointStore {
                 bits BLOB NOT NULL,
                 PRIMARY KEY (z, x, y)
             ) WITHOUT ROWID;
+            CREATE TABLE IF NOT EXISTS daily (
+                day TEXT PRIMARY KEY,
+                area REAL NOT NULL,
+                distance REAL NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS meta (
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL

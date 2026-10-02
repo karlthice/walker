@@ -8,6 +8,8 @@ struct ExploredGrid {
     private let load: Loader
     private(set) var tiles: [TileKey: TileBits] = [:]
     private(set) var dirty: Set<TileKey> = []
+    /// Area of fine cells newly revealed through this grid, in m².
+    private(set) var newlyExploredArea: Double = 0
 
     init(load: @escaping Loader = { _ in nil }) {
         self.load = load
@@ -68,6 +70,7 @@ struct ExploredGrid {
         // Overview cells are only ever set together with a fine cell, so if the fine cell
         // was already set there is nothing more to do.
         guard try insert(cellZoom: FogGrid.fineCellZoom, x: x, y: y) else { return }
+        newlyExploredArea += FogGrid.cellArea(row: y)
         for zoom in FogGrid.cellZooms.dropFirst() {
             let shift = FogGrid.fineCellZoom - zoom
             try insert(cellZoom: zoom, x: x >> shift, y: y >> shift)

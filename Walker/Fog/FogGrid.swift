@@ -26,6 +26,18 @@ enum FogGrid {
         return (x, y)
     }
 
+    /// Latitude of a (fractional) cell row.
+    static func latitude(ofCellY y: Double, zoom: Int = fineCellZoom) -> CLLocationDegrees {
+        let n = Double(cellCount(zoom: zoom))
+        return atan(sinh(.pi * (1 - 2 * y / n))) * 180 / .pi
+    }
+
+    /// Area of one cell in row `y`, in m².
+    static func cellArea(row y: Int, zoom: Int = fineCellZoom) -> Double {
+        let size = cellSize(atLatitude: latitude(ofCellY: Double(y) + 0.5, zoom: zoom), zoom: zoom)
+        return size * size
+    }
+
     /// Width of one cell in metres at the given latitude.
     static func cellSize(atLatitude latitude: CLLocationDegrees, zoom: Int = fineCellZoom) -> CLLocationDistance {
         earthCircumference * cos(latitude * .pi / 180) / Double(cellCount(zoom: zoom))
@@ -72,6 +84,11 @@ struct TileBits: Equatable {
     }
 
     var count: Int { words.reduce(0) { $0 + $1.nonzeroBitCount } }
+
+    func count(row: Int) -> Int {
+        let word = words[row >> 1] >> UInt64((row & 1) * 32)
+        return (word & 0xFFFF_FFFF).nonzeroBitCount
+    }
 
     func contains(column: Int, row: Int) -> Bool {
         let index = row * FogGrid.cellsPerTile + column

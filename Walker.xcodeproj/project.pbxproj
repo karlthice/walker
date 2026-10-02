@@ -13,21 +13,27 @@
 		198AB5BEB7F47716A6D9F2CB /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C26DC0981BE67277D7CBA0 /* LocationService.swift */; };
 		285DF523D50594C64C18EC07 /* ExploredGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 253CCD38DE33393F9822D41C /* ExploredGrid.swift */; };
 		29DC80FD3FB4947E845BCFCD /* FogBitmapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89DD99ACBEC285D8FF78BB24 /* FogBitmapTests.swift */; };
+		2ADAC14BEA4ECE8EC8E42A3A /* CountryIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B814548ECCFA764A5934F52 /* CountryIndex.swift */; };
 		364EABDB10E52724673187AF /* PointStore+Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = A922A4D8D0D5462766F7ECFF /* PointStore+Grid.swift */; };
 		477299286199412773BD73BB /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A040C53B2788FAF05BE11 /* Database.swift */; };
+		4C83556C119A7E72D7C10DF4 /* StatsCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D004D520AB7AE064F0E627 /* StatsCalculator.swift */; };
+		5225E418F156B90D06515BF5 /* StatsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CB0B492CF1842C2E4D1E4D0 /* StatsTests.swift */; };
 		5E2BD5DE35BF4A2D85B89FEB /* RevealerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEBEFC3AE7FDCAF1AD0CC429 /* RevealerTests.swift */; };
 		6C60E9EF317CEA5C97738530 /* ExploredGridTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2139DDAD157F02FF0C2125 /* ExploredGridTests.swift */; };
 		6EFB6C73CD22D682A6508CA9 /* PointStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EBF54C6628D0EF463FB8273 /* PointStoreTests.swift */; };
 		77396BC594DB80FC3F40AF65 /* FogGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDD547C350C6AED172CF7925 /* FogGrid.swift */; };
+		774BA63F2F5BF30201957405 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8B889F04FC3965A4DB918078 /* Assets.xcassets */; };
 		809C9A4AE62120C12370713D /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3285AEAFF32A74D23E13CA3D /* LogView.swift */; };
 		8B796C2BA76F7391812FFD90 /* FogRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E934136236F5227C00B9AD0 /* FogRenderer.swift */; };
 		97AA480D0C25DCB0B8ACC68A /* StatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E8D7CD40495BFB4C6356F8 /* StatusView.swift */; };
+		9E19892E9103BBE05C2B11A9 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13F149C43756BDD72E778A85 /* StatsView.swift */; };
 		B538CACDDDAFB4645E77BAC4 /* WalkerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B163D8958B032E4D574360E /* WalkerApp.swift */; };
 		C18B5E34BD92EE740465CFD0 /* PointFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4138E232C776EAEF95045503 /* PointFilterTests.swift */; };
 		C5BCE71D195AAD39F04E70B1 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D842D47ECDC6CF08DB4BEC1 /* RootView.swift */; };
 		CFE1D8FC798725436FFBDFFE /* FogGridTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E76F5E77522B249E792973A7 /* FogGridTests.swift */; };
 		DD7CD1314443419077A35841 /* PointFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44AE55732A1F6CB549FD4268 /* PointFilter.swift */; };
 		E94AFB834A99B6962D0A5E1C /* TileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCDF0E5EAE8BDA952970708 /* TileReader.swift */; };
+		EC07BE08B800CD83ABED453E /* countries.json in Resources */ = {isa = PBXBuildFile; fileRef = 59C29998D9E049B65364A22B /* countries.json */; };
 		FDC115890A551B9AA4F3CD49 /* LocationPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84DF1A7056D44F387368506D /* LocationPoint.swift */; };
 /* End PBXBuildFile section */
 
@@ -43,20 +49,25 @@
 
 /* Begin PBXFileReference section */
 		0E934136236F5227C00B9AD0 /* FogRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FogRenderer.swift; sourceTree = "<group>"; };
+		13F149C43756BDD72E778A85 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		167BC3C7AD2686B82098CB69 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		19B2A864FAEAE4F2CD0ED2FB /* WalkerTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WalkerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		253CCD38DE33393F9822D41C /* ExploredGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploredGrid.swift; sourceTree = "<group>"; };
+		2CB0B492CF1842C2E4D1E4D0 /* StatsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsTests.swift; sourceTree = "<group>"; };
 		2D842D47ECDC6CF08DB4BEC1 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		3285AEAFF32A74D23E13CA3D /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		4138E232C776EAEF95045503 /* PointFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointFilterTests.swift; sourceTree = "<group>"; };
 		44AE55732A1F6CB549FD4268 /* PointFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointFilter.swift; sourceTree = "<group>"; };
 		4B163D8958B032E4D574360E /* WalkerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkerApp.swift; sourceTree = "<group>"; };
+		59C29998D9E049B65364A22B /* countries.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = countries.json; sourceTree = "<group>"; };
+		6B814548ECCFA764A5934F52 /* CountryIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountryIndex.swift; sourceTree = "<group>"; };
 		6D2139DDAD157F02FF0C2125 /* ExploredGridTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploredGridTests.swift; sourceTree = "<group>"; };
 		6EBF54C6628D0EF463FB8273 /* PointStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointStoreTests.swift; sourceTree = "<group>"; };
 		7A4E95DAF493184454F842A1 /* Revealer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Revealer.swift; sourceTree = "<group>"; };
 		84DF1A7056D44F387368506D /* LocationPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPoint.swift; sourceTree = "<group>"; };
 		87E8D7CD40495BFB4C6356F8 /* StatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusView.swift; sourceTree = "<group>"; };
 		89DD99ACBEC285D8FF78BB24 /* FogBitmapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FogBitmapTests.swift; sourceTree = "<group>"; };
+		8B889F04FC3965A4DB918078 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A0C26DC0981BE67277D7CBA0 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		A922A4D8D0D5462766F7ECFF /* PointStore+Grid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PointStore+Grid.swift"; sourceTree = "<group>"; };
 		ADEC1A67ABB8306703DA89A7 /* Walker.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Walker.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -65,6 +76,7 @@
 		BE7A040C53B2788FAF05BE11 /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		BEBEFC3AE7FDCAF1AD0CC429 /* RevealerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealerTests.swift; sourceTree = "<group>"; };
 		C13E6D91CBF3173DF4FC3CCD /* FogMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FogMapView.swift; sourceTree = "<group>"; };
+		C9D004D520AB7AE064F0E627 /* StatsCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsCalculator.swift; sourceTree = "<group>"; };
 		CDD547C350C6AED172CF7925 /* FogGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FogGrid.swift; sourceTree = "<group>"; };
 		E76F5E77522B249E792973A7 /* FogGridTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FogGridTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -117,6 +129,16 @@
 			path = Map;
 			sourceTree = "<group>";
 		};
+		8EC452F1715E9789CC856DC6 /* Stats */ = {
+			isa = PBXGroup;
+			children = (
+				6B814548ECCFA764A5934F52 /* CountryIndex.swift */,
+				C9D004D520AB7AE064F0E627 /* StatsCalculator.swift */,
+				13F149C43756BDD72E778A85 /* StatsView.swift */,
+			);
+			path = Stats;
+			sourceTree = "<group>";
+		};
 		99FA74952C0F83565194A08A /* WalkerTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -126,6 +148,7 @@
 				4138E232C776EAEF95045503 /* PointFilterTests.swift */,
 				6EBF54C6628D0EF463FB8273 /* PointStoreTests.swift */,
 				BEBEFC3AE7FDCAF1AD0CC429 /* RevealerTests.swift */,
+				2CB0B492CF1842C2E4D1E4D0 /* StatsTests.swift */,
 			);
 			path = WalkerTests;
 			sourceTree = "<group>";
@@ -142,15 +165,26 @@
 		D2907CFC00D272F90C29AC84 /* Walker */ = {
 			isa = PBXGroup;
 			children = (
+				8B889F04FC3965A4DB918078 /* Assets.xcassets */,
 				167BC3C7AD2686B82098CB69 /* Info.plist */,
 				6CFAF1FDB08F2540E3D76A8B /* App */,
 				FFED29154A8171D4FA7DADD9 /* Debug */,
 				FE4078E6830F21B8C8FDD126 /* Fog */,
 				656F15AE508619DCA1F80C60 /* Location */,
 				7842B657D9843E5896852FB1 /* Map */,
+				EB6CA0FEB92ED07E3187B83D /* Resources */,
+				8EC452F1715E9789CC856DC6 /* Stats */,
 				12A0FE38D81F9111C87A7AC9 /* Storage */,
 			);
 			path = Walker;
+			sourceTree = "<group>";
+		};
+		EB6CA0FEB92ED07E3187B83D /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				59C29998D9E049B65364A22B /* countries.json */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		FE4078E6830F21B8C8FDD126 /* Fog */ = {
@@ -181,6 +215,7 @@
 			buildConfigurationList = 5C77E55533EFAC97A11280C6 /* Build configuration list for PBXNativeTarget "Walker" */;
 			buildPhases = (
 				3727C54E4FE36CB8173B7499 /* Sources */,
+				FE27FE8B262E36B16F6FC8F4 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -250,11 +285,24 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		FE27FE8B262E36B16F6FC8F4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				774BA63F2F5BF30201957405 /* Assets.xcassets in Resources */,
+				EC07BE08B800CD83ABED453E /* countries.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		3727C54E4FE36CB8173B7499 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2ADAC14BEA4ECE8EC8E42A3A /* CountryIndex.swift in Sources */,
 				477299286199412773BD73BB /* Database.swift in Sources */,
 				285DF523D50594C64C18EC07 /* ExploredGrid.swift in Sources */,
 				77396BC594DB80FC3F40AF65 /* FogGrid.swift in Sources */,
@@ -268,6 +316,8 @@
 				12E02FAC907AB033956C6A7A /* PointStore.swift in Sources */,
 				10D2B627838083E3651B5C73 /* Revealer.swift in Sources */,
 				C5BCE71D195AAD39F04E70B1 /* RootView.swift in Sources */,
+				4C83556C119A7E72D7C10DF4 /* StatsCalculator.swift in Sources */,
+				9E19892E9103BBE05C2B11A9 /* StatsView.swift in Sources */,
 				97AA480D0C25DCB0B8ACC68A /* StatusView.swift in Sources */,
 				E94AFB834A99B6962D0A5E1C /* TileReader.swift in Sources */,
 				B538CACDDDAFB4645E77BAC4 /* WalkerApp.swift in Sources */,
@@ -284,6 +334,7 @@
 				C18B5E34BD92EE740465CFD0 /* PointFilterTests.swift in Sources */,
 				6EFB6C73CD22D682A6508CA9 /* PointStoreTests.swift in Sources */,
 				5E2BD5DE35BF4A2D85B89FEB /* RevealerTests.swift in Sources */,
+				5225E418F156B90D06515BF5 /* StatsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
