@@ -94,7 +94,7 @@ struct PolygonTests {
         var grid = ExploredGrid()
         try grid.revealCircle(center: miðborgPoint, radius: 300)
         var checked = 0
-        for (key, bits) in grid.tiles where key.zoom == 16 {
+        for (key, bits) in grid.tiles where key.zoom == FogGrid.fineTileZoom {
             let inside = index.inside(tileX: key.x, tileY: key.y, bits: bits)
             let bounds = EdgeIndex.bounds(tileX: key.x, tileY: key.y)
             let width = (bounds.maxLon - bounds.minLon) / 32

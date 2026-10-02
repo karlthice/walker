@@ -8,12 +8,13 @@ struct PointFilter {
         case inaccurate
         /// Not newer than the last accepted fix (duplicate or cached).
         case outOfOrder
-        /// Within `minDistance` of the last accepted fix; adds nothing at a 150 m reveal radius.
+        /// Within `minDistance` of the last accepted fix; adds nothing at a 25 m reveal radius.
         case tooClose
     }
 
-    var maxAccuracy: CLLocationAccuracy = 100
-    var minDistance: CLLocationDistance = 50
+    /// A fix off by more than this would clear the wrong street with a 25 m reveal radius.
+    var maxAccuracy: CLLocationAccuracy = 35
+    var minDistance: CLLocationDistance = 15
     private(set) var last: CLLocation?
 
     mutating func seed(with point: LocationPoint) {

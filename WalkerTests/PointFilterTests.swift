@@ -31,7 +31,8 @@ struct PointFilterTests {
     @Test func rejectsFixesTooCloseToLast() {
         var filter = PointFilter()
         _ = filter.evaluate(fix(lat: 64.1, after: 0))
-        #expect(filter.evaluate(fix(lat: 64.1003, after: 30)) == .tooClose)
+        // 0.0001° of latitude is ~11 m.
+        #expect(filter.evaluate(fix(lat: 64.1001, after: 30)) == .tooClose)
     }
 
     @Test func acceptsAfterMovingFarEnough() {

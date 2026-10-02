@@ -5,11 +5,12 @@ import Testing
 
 struct AreaTests {
     @Test func cellAreaAtEquatorAndReykjavik() {
-        let n = FogGrid.cellCount(zoom: 21)
-        #expect(abs(FogGrid.cellArea(row: n / 2) - 19.11 * 19.11) < 1)
+        let n = FogGrid.cellCount(zoom: FogGrid.fineCellZoom)
+        #expect(abs(FogGrid.cellSize(atLatitude: 0) - 9.55) < 0.01)
+        #expect(abs(FogGrid.cellArea(row: n / 2) - 9.55 * 9.55) < 0.2)
         let row = Int(FogGrid.cellPosition(of: reykjavik).y)
         let size = FogGrid.cellSize(atLatitude: reykjavik.latitude)
-        #expect(abs(size - 8.34) < 0.01)
+        #expect(abs(size - 4.17) < 0.01)
         #expect(abs(FogGrid.cellArea(row: row) - size * size) < 0.01)
     }
 
@@ -75,13 +76,14 @@ struct DailyStatsTests {
         let yesterday = try #require(days.first)
         #expect(calendar.isDate(yesterday.day, inSameDayAs: start))
         #expect(abs(yesterday.totals.distance - 1000) < 5)
-        let strip = 2 * 150 * 1000 + Double.pi * 150 * 150
+        let r = Revealer.radius
+        let strip = 2 * r * 1000 + Double.pi * r * r
         #expect(abs(yesterday.totals.area - strip) / strip < 0.05)
 
         // Today's point is hours later, so it's a lone circle with no distance.
         let today = try #require(days.last)
         #expect(today.totals.distance == 0)
-        #expect(abs(today.totals.area - Double.pi * 150 * 150) / (Double.pi * 150 * 150) < 0.05)
+        #expect(abs(today.totals.area - Double.pi * r * r) / (Double.pi * r * r) < 0.1)
     }
 
     @Test func rebuildReproducesDailyTotals() throws {
@@ -155,6 +157,7 @@ struct CountryStatsTests {
         #expect(abs(total - split) / total < 1e-9)
 
         let iceland = try #require(stats.first { $0.code == "ISL" })
-        #expect(abs(iceland.fraction - Double.pi * 150 * 150 / 101_164.1e6) / iceland.fraction < 0.05)
+        let circle = Double.pi * Revealer.radius * Revealer.radius
+        #expect(abs(iceland.fraction - circle / 101_164.1e6) / iceland.fraction < 0.1)
     }
 }

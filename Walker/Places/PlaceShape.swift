@@ -114,14 +114,14 @@ struct PlaceShape: Codable, Equatable, Sendable {
     }
 }
 
-/// Edges of a shape bucketed by zoom-16 tile row, so measuring a tile only looks at
+/// Edges of a shape bucketed by finest-grid tile row, so measuring a tile only looks at
 /// edges near it instead of the whole boundary.
 struct EdgeIndex {
     struct Edge {
         var x1, y1, x2, y2: Double
     }
 
-    private static let tileZoom = FogGrid.fineCellZoom - FogGrid.tileShift
+    private static let tileZoom = FogGrid.fineTileZoom
 
     let shape: PlaceShape
     private var rows: [Int: [Edge]] = [:]
@@ -148,7 +148,7 @@ struct EdgeIndex {
             && bounds.minLat <= shape.bbox[3] && bounds.maxLat >= shape.bbox[1]
     }
 
-    /// Marks which set cells of a zoom-16 tile lie inside the shape (row-major, 32×32).
+    /// Marks which set cells of a finest-grid tile lie inside the shape (row-major, 32×32).
     func inside(tileX: Int, tileY: Int, bits: TileBits) -> [Bool] {
         var result = [Bool](repeating: false, count: FogGrid.cellsPerTile * FogGrid.cellsPerTile)
         guard intersects(tileX: tileX, tileY: tileY) else { return result }

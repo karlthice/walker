@@ -16,19 +16,19 @@ struct FogBitmapTests {
 
     @Test func picksFinestLevelThatStaysVisible() {
         // Street level: a fine cell is many points wide.
-        #expect(FogBitmap.cellZoom(forZoomScale: 1.0 / 16) == 21)
+        #expect(FogBitmap.cellZoom(forZoomScale: 1.0 / 16) == 22)
         // Whole world on screen: even the coarsest cells are tiny.
-        #expect(FogBitmap.cellZoom(forZoomScale: 1.0 / 1_000_000) == 9)
+        #expect(FogBitmap.cellZoom(forZoomScale: 1.0 / 1_000_000) == 10)
         // Fine cells exactly 2 points wide is still the fine level; just below switches to the next.
-        let fineCellMapPoints = MKMapSize.world.width / Double(1 << 21)
-        #expect(FogBitmap.cellZoom(forZoomScale: 2 / fineCellMapPoints) == 21)
-        #expect(FogBitmap.cellZoom(forZoomScale: 1.9 / fineCellMapPoints) == 18)
+        let fineCellMapPoints = MKMapSize.world.width / Double(1 << 22)
+        #expect(FogBitmap.cellZoom(forZoomScale: 2 / fineCellMapPoints) == 22)
+        #expect(FogBitmap.cellZoom(forZoomScale: 1.9 / fineCellMapPoints) == 19)
     }
 
     @Test func exploredCellsAreClear() throws {
         var grid = ExploredGrid()
-        try grid.revealCircle(center: reykjavik, radius: 150)
-        let range = range(around: reykjavik, zoom: 21, size: 64)
+        try grid.revealCircle(center: reykjavik, radius: 100)
+        let range = range(around: reykjavik, zoom: 22, size: 64)
 
         let image = try #require(FogBitmap.image(for: range, tiles: grid.tiles))
         #expect(image.width == 64)
@@ -38,8 +38,8 @@ struct FogBitmapTests {
 
     @Test func scaledImageHasSoftEdges() throws {
         var grid = ExploredGrid()
-        try grid.revealCircle(center: reykjavik, radius: 150)
-        let range = range(around: reykjavik, zoom: 21, size: 64)
+        try grid.revealCircle(center: reykjavik, radius: 100)
+        let range = range(around: reykjavik, zoom: 22, size: 64)
 
         let image = try #require(FogBitmap.image(for: range, tiles: grid.tiles, scale: 4))
         #expect(image.width == 256)
@@ -53,8 +53,8 @@ struct FogBitmapTests {
 
     @Test func overviewShowsExploredArea() throws {
         var grid = ExploredGrid()
-        try grid.revealCircle(center: reykjavik, radius: 150)
-        let range = range(around: reykjavik, zoom: 12, size: 8)
+        try grid.revealCircle(center: reykjavik, radius: 100)
+        let range = range(around: reykjavik, zoom: 13, size: 8)
 
         let image = try #require(FogBitmap.image(for: range, tiles: grid.tiles))
         #expect(alpha(of: image, column: 4, row: 4) == 0)
@@ -70,9 +70,9 @@ struct FogBitmapTests {
     }
 
     @Test func tileKeysWrapAtTheAntimeridian() {
-        let range = FogBitmap.CellRange(zoom: 21, minX: -2, minY: 1000, width: 4, height: 4)
+        let range = FogBitmap.CellRange(zoom: 22, minX: -2, minY: 1000, width: 4, height: 4)
         let xs = Set(range.tileKeys.map(\.x))
-        #expect(xs == [0, (1 << 16) - 1])
+        #expect(xs == [0, (1 << 17) - 1])
     }
 
     @Test func renderingLargeHistoryIsFast() throws {
@@ -92,8 +92,8 @@ struct FogBitmapTests {
         let elapsed = clock.measure {
             for dy in -4..<4 {
                 for dx in -4..<4 {
-                    let base = range(around: reykjavik, zoom: 21, size: 130)
-                    let tile = FogBitmap.CellRange(zoom: 21, minX: base.minX + dx * 130, minY: base.minY + dy * 130, width: 130, height: 130)
+                    let base = range(around: reykjavik, zoom: 22, size: 130)
+                    let tile = FogBitmap.CellRange(zoom: 22, minX: base.minX + dx * 130, minY: base.minY + dy * 130, width: 130, height: 130)
                     if FogBitmap.image(for: tile, tiles: grid.tiles, scale: 2) != nil { images += 1 }
                 }
             }

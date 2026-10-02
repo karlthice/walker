@@ -4,7 +4,7 @@ import UIKit
 
 /// Keeps location tracking alive in the background without the app being opened.
 ///
-/// - Moving: standard updates at ~100 m accuracy, one every ~75 m.
+/// - Moving: standard updates at the best accuracy, one every ~20 m, so the narrow reveal follows streets.
 /// - Paused by iOS (stationary): a 150 m geofence around the last position; exiting it restarts updates.
 /// - Backups: significant location changes and visit departures also restart updates, and
 ///   relaunch the app if iOS terminated it.
@@ -68,8 +68,8 @@ final class LocationService: NSObject {
         }
         revealFog(rebuildIfNeeded: true)
 
-        manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
-        manager.distanceFilter = 75
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.distanceFilter = 20
         manager.activityType = .other
         manager.pausesLocationUpdatesAutomatically = true
         manager.allowsBackgroundLocationUpdates = true

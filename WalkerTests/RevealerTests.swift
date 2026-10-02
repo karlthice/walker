@@ -13,7 +13,7 @@ struct RevealerTests {
     private func explored(_ coordinate: CLLocationCoordinate2D, in store: PointStore) throws -> Bool {
         let position = FogGrid.cellPosition(of: coordinate)
         let x = Int(position.x), y = Int(position.y)
-        let bits = try store.loadTile(TileKey(cellZoom: 21, cellX: x, cellY: y))
+        let bits = try store.loadTile(TileKey(cellZoom: FogGrid.fineCellZoom, cellX: x, cellY: y))
         return bits?.contains(column: x & 31, row: y & 31) ?? false
     }
 

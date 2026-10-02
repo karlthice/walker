@@ -6,13 +6,14 @@ import CoreLocation
 /// the grid couldn't be updated (e.g. before first unlock) are picked up by the next catch-up.
 @MainActor
 final class Revealer {
-    nonisolated static let radius: CLLocationDistance = 150
+    /// Clears about a 50 m wide path: the street walked and the buildings along it.
+    nonisolated static let radius: CLLocationDistance = 25
     /// Consecutive points are joined by a strip only if they are this close in time...
     nonisolated static let maxGap: TimeInterval = 10 * 60
     /// ...and the implied speed is plausible, so a bad fix doesn't clear a stripe across town.
     nonisolated static let maxSpeed: CLLocationSpeed = 200 / 3.6
     /// Bump when the reveal rules change; the grid is then rebuilt from the raw points.
-    static let version = 2
+    static let version = 3
 
     private let store: PointStore
 

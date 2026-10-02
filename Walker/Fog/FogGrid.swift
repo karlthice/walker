@@ -2,15 +2,18 @@ import CoreLocation
 
 /// Geometry of the explored grid.
 ///
-/// The world is split into Web Mercator tiles at zoom 16, each a 32×32 bitmap of cells,
-/// so the finest cells are zoom-21 "pixels" (~19 m at the equator, ~8 m at 64°N).
+/// The world is split into Web Mercator tiles at zoom 17, each a 32×32 bitmap of cells,
+/// so the finest cells are zoom-22 "pixels" (~9.6 m at the equator, ~7.7 m in Kanazawa,
+/// ~4.2 m in Reykjavík): fine enough for a 25 m reveal radius to follow single streets.
 /// Coarser overview levels, each 8× coarser, let the map draw zoomed-out views quickly.
 enum FogGrid {
-    static let fineCellZoom = 21
+    static let fineCellZoom = 22
     static let tileShift = 5
     static let cellsPerTile = 1 << tileShift
     /// Stored cell zooms, finest first. Each overview cell is set if any finer cell inside it is.
-    static let cellZooms = [21, 18, 15, 12, 9]
+    static let cellZooms = [22, 19, 16, 13, 10]
+    /// Zoom of the tiles holding the finest cells.
+    static var fineTileZoom: Int { fineCellZoom - tileShift }
 
     private static let maxLatitude = 85.05112878
     private static let earthCircumference = 40_075_016.686
@@ -45,7 +48,7 @@ enum FogGrid {
 }
 
 struct TileKey: Hashable {
-    /// Tile zoom: the cell zoom minus 5 (16 for the finest level).
+    /// Tile zoom: the cell zoom minus 5 (17 for the finest level).
     var zoom: Int
     var x: Int
     var y: Int

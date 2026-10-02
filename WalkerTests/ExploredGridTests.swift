@@ -17,7 +17,7 @@ struct ExploredGridTests {
         var grid = ExploredGrid()
         try grid.revealCircle(center: reykjavik, radius: 150)
 
-        let fineCells = grid.tiles.filter { $0.key.zoom == 16 }.values.reduce(0) { $0 + $1.count }
+        let fineCells = grid.tiles.filter { $0.key.zoom == FogGrid.fineTileZoom }.values.reduce(0) { $0 + $1.count }
         let cellSize = FogGrid.cellSize(atLatitude: reykjavik.latitude)
         let expected = Double.pi * pow(150 / cellSize, 2)
         #expect(abs(Double(fineCells) - expected) / expected < 0.05)
@@ -45,15 +45,15 @@ struct ExploredGridTests {
     }
 
     @Test func circleOnTileBoundaryTouchesBothTiles() throws {
-        // A longitude exactly on a zoom-16 tile edge.
-        let n = Double(FogGrid.cellCount(zoom: 21))
+        // A longitude exactly on a finest-grid tile edge.
+        let n = Double(FogGrid.cellCount(zoom: FogGrid.fineCellZoom))
         let tileX = 29_000
         let edge = CLLocationCoordinate2D(latitude: reykjavik.latitude, longitude: Double(tileX * 32) / n * 360 - 180)
 
         var grid = ExploredGrid()
         try grid.revealCircle(center: edge, radius: 150)
 
-        let fineTileXs = Set(grid.dirty.filter { $0.zoom == 16 }.map(\.x))
+        let fineTileXs = Set(grid.dirty.filter { $0.zoom == FogGrid.fineTileZoom }.map(\.x))
         #expect(fineTileXs.contains(tileX - 1))
         #expect(fineTileXs.contains(tileX))
         #expect(grid.contains(offset(edge, east: -100)))
@@ -82,12 +82,12 @@ struct ExploredGridTests {
         #expect(grid.contains(west))
         #expect(grid.contains(east))
         #expect(!grid.contains(CLLocationCoordinate2D(latitude: 0, longitude: 0)))
-        #expect(grid.dirty.filter { $0.zoom == 16 }.count <= 4)
+        #expect(grid.dirty.filter { $0.zoom == FogGrid.fineTileZoom }.count <= 4)
     }
 
     @Test func loadedTilesKeepExistingCells() throws {
         let position = FogGrid.cellPosition(of: reykjavik)
-        let key = TileKey(cellZoom: 21, cellX: Int(position.x), cellY: Int(position.y))
+        let key = TileKey(cellZoom: FogGrid.fineCellZoom, cellX: Int(position.x), cellY: Int(position.y))
         var existing = TileBits()
         existing.insert(column: 0, row: 0)
 

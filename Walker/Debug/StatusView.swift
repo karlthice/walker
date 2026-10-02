@@ -45,7 +45,7 @@ struct StatusView: View {
             .navigationTitle("Walker")
             .task(id: service.revision) {
                 storedPoints = service.store.pointCount()
-                exploredTiles = service.store.tileCount(zoom: FogGrid.fineCellZoom - FogGrid.tileShift)
+                exploredTiles = service.store.tileCount(zoom: FogGrid.fineTileZoom)
             }
         }
     }

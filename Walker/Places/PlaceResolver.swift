@@ -247,7 +247,7 @@ actor PlaceResolver {
 
     /// The country's explored tiles that changed since cities were last assigned, most explored first.
     private func pendingCityTiles(country: String, countries: CountryIndex) throws -> [Tile] {
-        let fineZoom = FogGrid.fineCellZoom - FogGrid.tileShift
+        let fineZoom = FogGrid.fineTileZoom
         let tileCount = Double(FogGrid.cellCount(zoom: fineZoom))
         let rows = try database().query(
             """
@@ -274,7 +274,7 @@ actor PlaceResolver {
 
     /// The city's tiles that changed since neighbourhoods were last assigned, most explored first.
     private func pendingNeighbourhoodTiles(city: Int64) throws -> [Tile] {
-        let fineZoom = FogGrid.fineCellZoom - FogGrid.tileShift
+        let fineZoom = FogGrid.fineTileZoom
         return try database().query(
             """
             SELECT t.x, t.y, t.bits, n.cells FROM tile_place_areas a

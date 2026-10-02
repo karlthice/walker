@@ -5,7 +5,7 @@ import Testing
 struct FogGridTests {
     @Test func nullIslandIsTheCentreOfTheWorld() {
         let position = FogGrid.cellPosition(of: CLLocationCoordinate2D(latitude: 0, longitude: 0))
-        let half = Double(1 << 20)
+        let half = Double(1 << (FogGrid.fineCellZoom - 1))
         #expect(abs(position.x - half) < 1e-6)
         #expect(abs(position.y - half) < 1e-6)
     }
@@ -17,14 +17,14 @@ struct FogGridTests {
     }
 
     @Test func cellSizeShrinksWithLatitude() {
-        #expect(abs(FogGrid.cellSize(atLatitude: 0) - 19.11) < 0.01)
-        #expect(abs(FogGrid.cellSize(atLatitude: 64) - 8.38) < 0.01)
+        #expect(abs(FogGrid.cellSize(atLatitude: 0) - 9.55) < 0.01)
+        #expect(abs(FogGrid.cellSize(atLatitude: 64) - 4.19) < 0.01)
     }
 
     @Test func tileKeyForCell() {
-        let key = TileKey(cellZoom: 21, cellX: 32 * 100 + 31, cellY: 32 * 7)
-        #expect(key == TileKey(zoom: 16, x: 100, y: 7))
-        #expect(key.cellZoom == 21)
+        let key = TileKey(cellZoom: 22, cellX: 32 * 100 + 31, cellY: 32 * 7)
+        #expect(key == TileKey(zoom: 17, x: 100, y: 7))
+        #expect(key.cellZoom == 22)
     }
 
     @Test func tileBitsInsertAndRoundTrip() throws {

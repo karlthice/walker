@@ -13,12 +13,12 @@ struct CountryStat: Identifiable, Hashable, Sendable {
 }
 
 enum StatsCalculator {
-    /// Splits the explored area by country. Each zoom-16 tile (≤ 600 m across) is assigned
+    /// Splits the explored area by country. Each finest-grid tile (≤ 300 m across) is assigned
     /// to the country at its centre, which is plenty precise for a percentage.
     /// Opens its own read-only connection so it can run off the main actor.
     static func countryStats(databaseURL: URL, countries: CountryIndex) throws -> [CountryStat] {
         let db = try Database(path: databaseURL.path, readOnly: true)
-        let fineZoom = FogGrid.fineCellZoom - FogGrid.tileShift
+        let fineZoom = FogGrid.fineTileZoom
         let tiles = try db.query("SELECT x, y, bits FROM tiles WHERE z = ?", [.int(Int64(fineZoom))]) { row in
             (x: Int(row.int(0)), y: Int(row.int(1)), bits: TileBits(data: row.blob(2)))
         }
