@@ -4,11 +4,20 @@ import UIKit
 @main
 struct WalkerApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(LocationService.shared)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            // Lets gaps in the path be matched against when the app was open.
+            switch phase {
+            case .active: LocationService.shared.log(.info, "App opened")
+            case .background: LocationService.shared.log(.info, "App in background")
+            default: break
+            }
         }
     }
 }

@@ -8,6 +8,9 @@ import UIKit
 /// - Paused by iOS (stationary): a 100 m geofence around the last position; exiting it restarts updates.
 /// - Backups: significant location changes and visit departures also restart updates, and
 ///   relaunch the app if iOS terminated it.
+/// - Sessions: while tracking, the app holds a background activity session and an "Always"
+///   service session. Without them, an app iOS relaunched in the background is suspended again
+///   after each brief wake, so it records ~30 s of fixes every few minutes instead of a path.
 @MainActor
 @Observable
 final class LocationService: NSObject {
@@ -53,6 +56,11 @@ final class LocationService: NSObject {
     @ObservationIgnored private var imprecise: (count: Int, best: CLLocationAccuracy, since: Date, until: Date)?
     @ObservationIgnored private var monitor: Task<CLMonitor, Never>?
     @ObservationIgnored private var bootstrapped = false
+    @ObservationIgnored private var backgroundSession: CLBackgroundActivitySession?
+    @ObservationIgnored private var serviceSession: CLServiceSession?
+    @ObservationIgnored private var sessionDiagnostics: Task<Void, Never>?
+    /// Last diagnostic logged per session, so only changes are logged.
+    @ObservationIgnored private var lastDiagnostic: [String: String] = [:]
 
     init(store: PointStore) {
         self.store = store
@@ -133,6 +141,7 @@ final class LocationService: NSObject {
             state = .off
             return
         }
+        holdSessions()
         manager.startUpdatingLocation()
         manager.startMonitoringSignificantLocationChanges()
         manager.startMonitoringVisits()
@@ -145,6 +154,7 @@ final class LocationService: NSObject {
 
     private func stop() {
         imprecise = nil
+        releaseSessions()
         manager.stopUpdatingLocation()
         manager.stopMonitoringSignificantLocationChanges()
         manager.stopMonitoringVisits()
@@ -201,6 +211,75 @@ final class LocationService: NSObject {
         } catch {
             // Database still locked (before first unlock); the next catch-up applies these points.
         }
+    }
+
+    // MARK: - Sessions
+
+    private func holdSessions() {
+        guard backgroundSession == nil else { return }
+        let background = CLBackgroundActivitySession()
+        let service = CLServiceSession(authorization: .always)
+        backgroundSession = background
+        serviceSession = service
+        sessionDiagnostics = Task { [weak self] in
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask {
+                    do {
+                        for try await d in background.diagnostics {
+                            await self?.logDiagnostic("Background session", Self.issues(
+                                inUse: d.insufficientlyInUse, denied: d.authorizationDenied, globallyDenied: d.authorizationDeniedGlobally,
+                                restricted: d.authorizationRestricted, sessionRequired: d.serviceSessionRequired,
+                                requestInProgress: d.authorizationRequestInProgress))
+                        }
+                    } catch {}
+                }
+                group.addTask {
+                    do {
+                        for try await d in service.diagnostics {
+                            var issues = Self.issues(
+                                inUse: d.insufficientlyInUse, denied: d.authorizationDenied, globallyDenied: d.authorizationDeniedGlobally,
+                                restricted: d.authorizationRestricted, sessionRequired: d.serviceSessionRequired,
+                                requestInProgress: d.authorizationRequestInProgress)
+                            if d.alwaysAuthorizationDenied { issues.append("Always denied") }
+                            if d.fullAccuracyDenied { issues.append("precise location off") }
+                            await self?.logDiagnostic("Service session", issues)
+                        }
+                    } catch {}
+                }
+            }
+        }
+    }
+
+    private nonisolated static func issues(inUse: Bool, denied: Bool, globallyDenied: Bool, restricted: Bool,
+                                           sessionRequired: Bool, requestInProgress: Bool) -> [String] {
+        [
+            inUse ? "not sufficiently in use" : nil,
+            denied ? "authorization denied" : nil,
+            globallyDenied ? "Location Services off" : nil,
+            restricted ? "restricted" : nil,
+            sessionRequired ? "service session required" : nil,
+            requestInProgress ? "authorization request in progress" : nil,
+        ].compactMap { $0 }
+    }
+
+    private func releaseSessions() {
+        backgroundSession?.invalidate()
+        backgroundSession = nil
+        serviceSession?.invalidate()
+        serviceSession = nil
+        sessionDiagnostics?.cancel()
+        sessionDiagnostics = nil
+        lastDiagnostic = [:]
+    }
+
+    private func logDiagnostic(_ session: String, _ issues: [String]) {
+        let summary = issues.isEmpty ? "OK" : issues.joined(separator: ", ")
+        guard lastDiagnostic[session] != summary else { return }
+        // The first report being fine isn't news; a change, or any problem, is.
+        if lastDiagnostic[session] != nil || !issues.isEmpty {
+            log(issues.isEmpty ? .info : .error, "\(session): \(summary)")
+        }
+        lastDiagnostic[session] = summary
     }
 
     // MARK: - Resume geofence
