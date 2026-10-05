@@ -3,11 +3,12 @@ import SwiftUI
 
 struct FogMapView: View {
     @Environment(LocationService.self) private var service
-    @State private var showPoints = false
+    @AppStorage("showRawPath") private var showPoints = false
     @State private var points: [LocationPoint] = []
 
     var body: some View {
-        FogMap(revision: service.revision, points: showPoints ? points : [])
+        // Showing the raw path lifts the fog, so the path can be seen against the whole map.
+        FogMap(revision: service.revision, points: showPoints ? points : [], showsFog: !showPoints)
             .ignoresSafeArea(edges: .top)
             .overlay(alignment: .topLeading) {
                 Button {
@@ -33,6 +34,7 @@ struct FogMapView: View {
 private struct FogMap: UIViewRepresentable {
     let revision: Int
     let points: [LocationPoint]
+    let showsFog: Bool
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -60,6 +62,12 @@ private struct FogMap: UIViewRepresentable {
 
     func updateUIView(_ map: MKMapView, context: Context) {
         let coordinator = context.coordinator
+        let fogShown = map.overlays.contains { $0 === coordinator.fog }
+        if showsFog && !fogShown {
+            map.insertOverlay(coordinator.fog, at: 0, level: .aboveLabels)
+        } else if !showsFog && fogShown {
+            map.removeOverlay(coordinator.fog)
+        }
         if coordinator.revision != revision {
             coordinator.revision = revision
             coordinator.reader.invalidateAll()

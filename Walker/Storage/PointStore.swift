@@ -198,21 +198,8 @@ final class PointStore {
                 PRIMARY KEY (x, y)
             ) WITHOUT ROWID;
             DROP TABLE IF EXISTS tile_neighbourhoods;
-            CREATE TABLE IF NOT EXISTS tile_children (
-                x INTEGER NOT NULL,
-                y INTEGER NOT NULL,
-                parent INTEGER NOT NULL,
-                level TEXT NOT NULL,
-                cells INTEGER NOT NULL,
-                PRIMARY KEY (x, y, parent, level)
-            ) WITHOUT ROWID;
-            CREATE TABLE IF NOT EXISTS place_gaps (
-                parent INTEGER NOT NULL,
-                level TEXT NOT NULL,
-                x INTEGER NOT NULL,
-                y INTEGER NOT NULL,
-                PRIMARY KEY (parent, level, x, y)
-            ) WITHOUT ROWID;
+            DROP TABLE IF EXISTS tile_children;
+            DROP TABLE IF EXISTS place_gaps;
             CREATE TABLE IF NOT EXISTS tile_place_areas (
                 x INTEGER NOT NULL,
                 y INTEGER NOT NULL,
@@ -224,6 +211,11 @@ final class PointStore {
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL
             );
+            """)
+        // Districts and neighbourhoods are no longer tracked; only cities remain.
+        try db.execute("""
+            DELETE FROM tile_place_areas WHERE place IN (SELECT id FROM places WHERE kind != 'city');
+            DELETE FROM places WHERE kind != 'city';
             """)
         try db.run(
             "DELETE FROM events WHERE id <= (SELECT MAX(id) FROM events) - ?",

@@ -32,12 +32,12 @@ struct StatsView: View {
                 } header: {
                     Text("Countries")
                 } footer: {
-                    Text("Share of each country's land area you have uncovered. Tap a country for its cities and neighbourhoods.")
+                    Text("Share of each country's land area you have uncovered. Tap a country for its cities.")
                 }
             }
             .navigationTitle("Stats")
-            .navigationDestination(for: PlaceListView.Scope.self) { scope in
-                PlaceListView(scope: scope)
+            .navigationDestination(for: CountryStat.self) { country in
+                CityListView(country: country)
             }
             .task(id: service.revision) {
                 days = service.store.dailyStats()
@@ -151,7 +151,7 @@ struct StatsView: View {
                     .foregroundStyle(.secondary)
             }
             ForEach(countries) { country in
-                NavigationLink(value: PlaceListView.Scope.country(country)) {
+                NavigationLink(value: country) {
                 HStack {
                     Text([country.flag, country.name].compactMap { $0 }.joined(separator: " "))
                     Spacer()

@@ -111,39 +111,18 @@ struct PolygonTests {
     }
 }
 
-/// Stands in for Nominatim with the Reykjavík fixtures: the city; the district Miðborg inside its
-/// boundary, or a boundary-less district point "Vesturbær" elsewhere; and at neighbourhood level
-/// Miðbær inside its boundary, or a boundary-less point "Melar" elsewhere.
+/// Stands in for Nominatim: Reykjavíkurborg inside its boundary, nothing elsewhere.
 private actor FakeLookup: PlaceLookup {
     let city: OSMPlace
-    let miðborg: OSMPlace
-    let miðbær: OSMPlace
-    /// Answer district lookups with the city itself, as for a city without districts.
-    var noDistricts = false
-    private(set) var calls: [Int: Int] = [:]
+    private(set) var calls = 0
 
     init() throws {
         city = try #require(try fixture("nominatim-reykjavik-city"))
-        miðborg = try #require(try fixture("nominatim-reykjavik-midborg"))
-        miðbær = try #require(try fixture("nominatim-reykjavik-midbaer"))
     }
 
-    func withoutDistricts() { noDistricts = true }
-
-    func place(at coordinate: CLLocationCoordinate2D, zoom: Int) async throws -> OSMPlace? {
-        calls[zoom, default: 0] += 1
-        guard city.shape?.contains(coordinate) == true else { return nil }
-        switch zoom {
-        case PlaceLevel.city.zoom:
-            return city
-        case PlaceLevel.district.zoom:
-            if noDistricts { return city }
-            if miðborg.shape?.contains(coordinate) == true { return miðborg }
-            return OSMPlace(id: -2, name: "Vesturbær", shape: nil, centre: vesturbærPoint)
-        default:
-            if miðbær.shape?.contains(coordinate) == true { return miðbær }
-            return OSMPlace(id: -1, name: "Melar", shape: nil, centre: vesturbærPoint)
-        }
+    func city(at coordinate: CLLocationCoordinate2D) async throws -> OSMPlace? {
+        calls += 1
+        return city.shape?.contains(coordinate) == true ? city : nil
     }
 }
 
@@ -165,9 +144,7 @@ struct PlaceResolverTests {
         try Revealer(store: store).catchUp()
     }
 
-    private func sum(_ stats: [PlaceStat]) -> Double { stats.reduce(0) { $0 + $1.exploredArea } }
-
-    @Test func resolvesCityDistrictAndNeighbourhood() async throws {
+    @Test func resolvesCitiesWithOneLookupPerCity() async throws {
         let (url, store) = try makeStore()
         defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
         try walk(store, [miðborgPoint, vesturbærPoint])
@@ -179,61 +156,16 @@ struct PlaceResolverTests {
 
         try await resolver.resolveCities(country: "ISL", countries: countries) { _ in }
         // Every tile after the first is covered by the cached boundary.
-        #expect(await lookup.calls[PlaceLevel.city.zoom] == 1)
+        #expect(await lookup.calls == 1)
         let city = try #require(try await resolver.cityStats(country: "ISL").first)
         #expect(city.name == "Reykjavíkurborg")
+        #expect(city.englishName == "Reykjavik")
         #expect(abs(city.exploredArea - total) / total < 0.01)
-        #expect((city.fraction ?? 0) > 0)
-
-        try await resolver.resolveChildren(of: city.id, level: .district) { _ in }
-        let districts = try await resolver.childStats(of: city.id, level: .district)
-        #expect(Set(districts.map(\.name)) == ["Miðborg", "Vesturbær"])
-        let miðborg = try #require(districts.first { $0.name == "Miðborg" })
-        #expect((miðborg.fraction ?? 0) > 0)
-        #expect(districts.first { $0.name == "Vesturbær" }?.fraction == nil)
-        #expect(abs(sum(districts) - city.exploredArea) / city.exploredArea < 0.01)
-
-        try await resolver.resolveChildren(of: miðborg.id, level: .neighbourhood) { _ in }
-        let neighbourhoods = try await resolver.childStats(of: miðborg.id, level: .neighbourhood)
-        #expect(neighbourhoods.contains { $0.name == "Miðbær" && ($0.fraction ?? 0) > 0 })
-        #expect(neighbourhoods.allSatisfy { $0.name != "Melar" || $0.fraction == nil })
-        #expect(abs(sum(neighbourhoods) - miðborg.exploredArea) / miðborg.exploredArea < 0.01)
+        #expect(city.fraction > 0)
 
         // Nothing changed, so another pass makes no lookups.
-        let before = await lookup.calls
         try await resolver.resolveCities(country: "ISL", countries: countries) { _ in }
-        try await resolver.resolveChildren(of: city.id, level: .district) { _ in }
-        try await resolver.resolveChildren(of: miðborg.id, level: .neighbourhood) { _ in }
-        #expect(await lookup.calls == before)
-
-        // Lower levels don't change the numbers above them.
-        #expect(try await resolver.cityStats(country: "ISL").first?.exploredArea == city.exploredArea)
-        #expect(try await resolver.childStats(of: city.id, level: .district).first(where: { $0.name == "Miðborg" })?.exploredArea == miðborg.exploredArea)
-    }
-
-    @Test func cityWithoutDistrictsHasNeighbourhoodsDirectly() async throws {
-        let (url, store) = try makeStore()
-        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
-        try walk(store, [miðborgPoint, vesturbærPoint])
-
-        let lookup = try FakeLookup()
-        await lookup.withoutDistricts()
-        let resolver = PlaceResolver(databaseURL: url, lookup: lookup)
-        try await resolver.resolveCities(country: "ISL", countries: try #require(CountryIndex.shared)) { _ in }
-        let city = try #require(try await resolver.cityStats(country: "ISL").first)
-
-        try await resolver.resolveChildren(of: city.id, level: .district) { _ in }
-        #expect(try await resolver.childStats(of: city.id, level: .district).isEmpty)
-        // Remembered gaps: about one lookup per ~1 km block walked, not one per map tile.
-        let tiles = try Database(path: url.path).query("SELECT COUNT(*) FROM tiles WHERE z = ?", [.int(Int64(FogGrid.fineTileZoom))]) { $0.int(0) }.first ?? 0
-        let calls = await lookup.calls[PlaceLevel.district.zoom] ?? 0
-        #expect(calls > 0 && calls < tiles / 2)
-
-        try await resolver.resolveChildren(of: city.id, level: .neighbourhood) { _ in }
-        let neighbourhoods = try await resolver.childStats(of: city.id, level: .neighbourhood)
-        #expect(Set(neighbourhoods.map(\.name)) == ["Miðbær", "Melar"])
-        #expect(neighbourhoods.first { $0.name == "Melar" }?.fraction == nil)
-        #expect(abs(sum(neighbourhoods) - city.exploredArea) / city.exploredArea < 0.01)
+        #expect(await lookup.calls == 1)
     }
 
     @Test func reportsProgress() async throws {

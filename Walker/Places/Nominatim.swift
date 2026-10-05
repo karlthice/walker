@@ -29,36 +29,9 @@ struct OSMPlace: Equatable, Sendable {
 
 /// Looks up places; a protocol so tests can stand in for the network.
 protocol PlaceLookup: Sendable {
-    /// The place containing the coordinate at a level of detail (a Nominatim zoom), or nil
-    /// where there is none (e.g. at sea).
-    func place(at coordinate: CLLocationCoordinate2D, zoom: Int) async throws -> OSMPlace?
-}
-
-/// OpenStreetMap's place hierarchy below the country, as Nominatim's zoom levels expose it.
-/// Where a level doesn't exist, Nominatim answers with the level above, and it is skipped.
-enum PlaceLevel: String, Sendable, Hashable {
-    /// Reykjavíkurborg, Barcelona, 金沢市, 新宿区
-    case city
-    /// Hlíðar, l'Eixample, Ciutat Vella
-    case district
-    /// Miðbær, la Barceloneta, 柿木畠, 歌舞伎町一丁目
-    case neighbourhood
-
-    var zoom: Int {
-        switch self {
-        case .city: 10
-        case .district: 12
-        case .neighbourhood: 14
-        }
-    }
-
-    var below: PlaceLevel? {
-        switch self {
-        case .city: .district
-        case .district: .neighbourhood
-        case .neighbourhood: nil
-        }
-    }
+    /// The city or municipality containing the coordinate (Reykjavíkurborg, Barcelona, 金沢市),
+    /// or nil where there is none, e.g. at sea.
+    func city(at coordinate: CLLocationCoordinate2D) async throws -> OSMPlace?
 }
 
 struct PlaceLookupError: Error, LocalizedError {
@@ -66,7 +39,7 @@ struct PlaceLookupError: Error, LocalizedError {
 }
 
 /// OpenStreetMap's Nominatim reverse geocoder. Only coordinates you have explored are sent,
-/// and only when a stats drill-down needs a place that isn't cached yet.
+/// and only when a country's cities are listed and a place isn't cached yet.
 actor NominatimClient: PlaceLookup {
     /// Nominatim's usage policy allows at most one request per second.
     private static let minInterval: Duration = .milliseconds(1100)
@@ -79,12 +52,13 @@ actor NominatimClient: PlaceLookup {
         self.session = session
     }
 
-    func place(at coordinate: CLLocationCoordinate2D, zoom: Int) async throws -> OSMPlace? {
+    func city(at coordinate: CLLocationCoordinate2D) async throws -> OSMPlace? {
         var components = URLComponents(url: endpoint.appending(path: "reverse"), resolvingAgainstBaseURL: false)!
         components.queryItems = [
             URLQueryItem(name: "lat", value: "\(coordinate.latitude)"),
             URLQueryItem(name: "lon", value: "\(coordinate.longitude)"),
-            URLQueryItem(name: "zoom", value: "\(zoom)"),
+            // Nominatim's zoom 10 is the city or municipality level.
+            URLQueryItem(name: "zoom", value: "10"),
             URLQueryItem(name: "format", value: "jsonv2"),
             URLQueryItem(name: "polygon_geojson", value: "1"),
             // Simplify boundaries to about 10 m: plenty for cells of 8–19 m, and much smaller.
