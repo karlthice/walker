@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0834931C12A795FF7B251FB9 /* PathOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD1A2209F1C22EE94D298048 /* PathOverlay.swift */; };
 		0855AE36D07D9469F58BAEBB /* nominatim-ocean.json in Resources */ = {isa = PBXBuildFile; fileRef = 8CC92C99ACABBCD893A7949A /* nominatim-ocean.json */; };
 		10D2B627838083E3651B5C73 /* Revealer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4E95DAF493184454F842A1 /* Revealer.swift */; };
 		11A70B1EB3D3D4FEE73C338B /* FogMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13E6D91CBF3173DF4FC3CCD /* FogMapView.swift */; };
@@ -24,6 +25,7 @@
 		54A2C058EE6D5CA6585A198A /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 0FB337E945902180DBF34483 /* README.md */; };
 		5C5501F998CFAD3202F6A633 /* CityListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FE3E83A6B1E84F0AA63AB32 /* CityListView.swift */; };
 		5E2BD5DE35BF4A2D85B89FEB /* RevealerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEBEFC3AE7FDCAF1AD0CC429 /* RevealerTests.swift */; };
+		654A42B2613B72D45F055ED9 /* PathOverlayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3103757D912D3312D350A994 /* PathOverlayTests.swift */; };
 		6C60E9EF317CEA5C97738530 /* ExploredGridTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2139DDAD157F02FF0C2125 /* ExploredGridTests.swift */; };
 		6EFB6C73CD22D682A6508CA9 /* PointStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EBF54C6628D0EF463FB8273 /* PointStoreTests.swift */; };
 		77396BC594DB80FC3F40AF65 /* FogGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDD547C350C6AED172CF7925 /* FogGrid.swift */; };
@@ -68,6 +70,7 @@
 		253CCD38DE33393F9822D41C /* ExploredGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploredGrid.swift; sourceTree = "<group>"; };
 		2CB0B492CF1842C2E4D1E4D0 /* StatsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsTests.swift; sourceTree = "<group>"; };
 		2D842D47ECDC6CF08DB4BEC1 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		3103757D912D3312D350A994 /* PathOverlayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathOverlayTests.swift; sourceTree = "<group>"; };
 		3285AEAFF32A74D23E13CA3D /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		34BFFCAE2F45FD52D4F4C550 /* PlacesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacesTests.swift; sourceTree = "<group>"; };
 		4138E232C776EAEF95045503 /* PointFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointFilterTests.swift; sourceTree = "<group>"; };
@@ -101,6 +104,7 @@
 		EF776D98DDE79DF16E961EF5 /* PlaceShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceShape.swift; sourceTree = "<group>"; };
 		F1D3E4688325FB16BC304E7A /* Nominatim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nominatim.swift; sourceTree = "<group>"; };
 		F61583C11E49932D9A1BE45F /* nominatim-reykjavik-midbaer.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "nominatim-reykjavik-midbaer.json"; sourceTree = "<group>"; };
+		FD1A2209F1C22EE94D298048 /* PathOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathOverlay.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -146,6 +150,7 @@
 			children = (
 				C13E6D91CBF3173DF4FC3CCD /* FogMapView.swift */,
 				0E934136236F5227C00B9AD0 /* FogRenderer.swift */,
+				FD1A2209F1C22EE94D298048 /* PathOverlay.swift */,
 				AFCDF0E5EAE8BDA952970708 /* TileReader.swift */,
 			);
 			path = Map;
@@ -181,6 +186,7 @@
 				6D2139DDAD157F02FF0C2125 /* ExploredGridTests.swift */,
 				89DD99ACBEC285D8FF78BB24 /* FogBitmapTests.swift */,
 				E76F5E77522B249E792973A7 /* FogGridTests.swift */,
+				3103757D912D3312D350A994 /* PathOverlayTests.swift */,
 				34BFFCAE2F45FD52D4F4C550 /* PlacesTests.swift */,
 				4138E232C776EAEF95045503 /* PointFilterTests.swift */,
 				6EBF54C6628D0EF463FB8273 /* PointStoreTests.swift */,
@@ -375,6 +381,7 @@
 				198AB5BEB7F47716A6D9F2CB /* LocationService.swift in Sources */,
 				809C9A4AE62120C12370713D /* LogView.swift in Sources */,
 				263319BC1C579144B84A7F2C /* Nominatim.swift in Sources */,
+				0834931C12A795FF7B251FB9 /* PathOverlay.swift in Sources */,
 				FF7EA0E1FB13BD16B3E70ABD /* PlaceResolver.swift in Sources */,
 				A3177E7D8123FCDB41F55BD5 /* PlaceShape.swift in Sources */,
 				DD7CD1314443419077A35841 /* PointFilter.swift in Sources */,
@@ -398,6 +405,7 @@
 				6C60E9EF317CEA5C97738530 /* ExploredGridTests.swift in Sources */,
 				29DC80FD3FB4947E845BCFCD /* FogBitmapTests.swift in Sources */,
 				CFE1D8FC798725436FFBDFFE /* FogGridTests.swift in Sources */,
+				654A42B2613B72D45F055ED9 /* PathOverlayTests.swift in Sources */,
 				8D2B080709F0DD975228F208 /* PlacesTests.swift in Sources */,
 				C18B5E34BD92EE740465CFD0 /* PointFilterTests.swift in Sources */,
 				6EFB6C73CD22D682A6508CA9 /* PointStoreTests.swift in Sources */,

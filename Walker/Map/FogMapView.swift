@@ -4,23 +4,26 @@ import SwiftUI
 struct FogMapView: View {
     @Environment(LocationService.self) private var service
     @AppStorage("showRawPath") private var showPoints = false
+    @AppStorage("pathByAge") private var pathByAge = true
     @State private var points: [LocationPoint] = []
 
     var body: some View {
         // Showing the raw path lifts the fog, so the path can be seen against the whole map.
-        FogMap(revision: service.revision, points: showPoints ? points : [], showsFog: !showPoints)
+        FogMap(revision: service.revision, points: showPoints ? points : [], pathByAge: pathByAge, showsFog: !showPoints)
             .ignoresSafeArea(edges: .top)
             .overlay(alignment: .topLeading) {
-                Button {
-                    showPoints.toggle()
-                } label: {
-                    Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
-                        .font(.title3)
-                        .foregroundStyle(showPoints ? Color.orange : Color.primary)
-                        .frame(width: 44, height: 44)
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+                VStack(spacing: 8) {
+                    mapButton("point.topleft.down.to.point.bottomright.curvepath", isOn: showPoints,
+                              label: showPoints ? "Hide raw path" : "Show raw path") {
+                        showPoints.toggle()
+                    }
+                    if showPoints {
+                        mapButton("clock.arrow.circlepath", isOn: pathByAge,
+                                  label: pathByAge ? "Draw the path in one style" : "Fade the path by age") {
+                            pathByAge.toggle()
+                        }
+                    }
                 }
-                .accessibilityLabel(showPoints ? "Hide raw points" : "Show raw points")
                 .padding()
             }
             .task(id: "\(showPoints)-\(service.revision)") {
@@ -29,11 +32,23 @@ struct FogMapView: View {
                 }
             }
     }
+
+    private func mapButton(_ symbol: String, isOn: Bool, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.title3)
+                .foregroundStyle(isOn ? Color.orange : Color.primary)
+                .frame(width: 44, height: 44)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+        }
+        .accessibilityLabel(label)
+    }
 }
 
 private struct FogMap: UIViewRepresentable {
     let revision: Int
     let points: [LocationPoint]
+    let pathByAge: Bool
     let showsFog: Bool
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -73,17 +88,12 @@ private struct FogMap: UIViewRepresentable {
             coordinator.reader.invalidateAll()
             coordinator.fogRenderer?.setNeedsDisplay()
         }
-        if coordinator.pathPoints != points {
+        if coordinator.pathPoints != points || coordinator.pathByAge != pathByAge {
             coordinator.pathPoints = points
-            if let path = coordinator.path {
-                map.removeOverlay(path)
-                coordinator.path = nil
-            }
-            if points.count > 1 {
-                let path = MKPolyline(coordinates: points.map(\.coordinate), count: points.count)
-                map.addOverlay(path, level: .aboveLabels)
-                coordinator.path = path
-            }
+            coordinator.pathByAge = pathByAge
+            map.removeOverlays(coordinator.paths)
+            coordinator.paths = PathAge.polylines(for: points, byAge: pathByAge)
+            map.addOverlays(coordinator.paths, level: .aboveLabels)
         }
     }
 
@@ -91,8 +101,9 @@ private struct FogMap: UIViewRepresentable {
         let fog = FogOverlay()
         let reader = TileReader()
         var fogRenderer: FogRenderer?
-        var path: MKPolyline?
+        var paths: [PathPolyline] = []
         var pathPoints: [LocationPoint] = []
+        var pathByAge = true
         var revision = -1
 
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
@@ -101,10 +112,12 @@ private struct FogMap: UIViewRepresentable {
                 fogRenderer = renderer
                 return renderer
             }
-            if let polyline = overlay as? MKPolyline {
-                let renderer = MKPolylineRenderer(polyline: polyline)
-                renderer.strokeColor = .systemOrange
-                renderer.lineWidth = 2
+            if let path = overlay as? PathPolyline {
+                let renderer = MKPolylineRenderer(polyline: path)
+                renderer.strokeColor = PathAge.color(step: path.step)
+                renderer.lineWidth = PathAge.width(step: path.step)
+                renderer.lineCap = .round
+                renderer.lineJoin = .round
                 return renderer
             }
             return MKOverlayRenderer(overlay: overlay)
