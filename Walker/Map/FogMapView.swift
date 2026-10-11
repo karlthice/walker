@@ -60,6 +60,7 @@ private struct FogMap: UIViewRepresentable {
         map.showsScale = true
         map.setUserTrackingMode(.follow, animated: false)
         map.addOverlay(context.coordinator.fog, level: .aboveLabels)
+        context.coordinator.headingBeam = HeadingBeamController(map: map)
 
         let button = MKUserTrackingButton(mapView: map)
         button.backgroundColor = .secondarySystemBackground
@@ -105,6 +106,15 @@ private struct FogMap: UIViewRepresentable {
         var pathPoints: [LocationPoint] = []
         var pathByAge = true
         var revision = -1
+        var headingBeam: HeadingBeamController?
+
+        func mapView(_ mapView: MKMapView, didAdd views: [MKAnnotationView]) {
+            headingBeam?.update()
+        }
+
+        func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
+            headingBeam?.update()
+        }
 
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             if let overlay = overlay as? FogOverlay {

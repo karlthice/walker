@@ -18,6 +18,7 @@
 		29DC80FD3FB4947E845BCFCD /* FogBitmapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89DD99ACBEC285D8FF78BB24 /* FogBitmapTests.swift */; };
 		2ADAC14BEA4ECE8EC8E42A3A /* CountryIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B814548ECCFA764A5934F52 /* CountryIndex.swift */; };
 		364EABDB10E52724673187AF /* PointStore+Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = A922A4D8D0D5462766F7ECFF /* PointStore+Grid.swift */; };
+		37BD5E5577C1E402E347E73F /* HeadingBeam.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41246890FF3EDA2DD2049B86 /* HeadingBeam.swift */; };
 		3ED323CE6116F3DB9DE300F9 /* nominatim-reykjavik-midbaer.json in Resources */ = {isa = PBXBuildFile; fileRef = F61583C11E49932D9A1BE45F /* nominatim-reykjavik-midbaer.json */; };
 		477299286199412773BD73BB /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7A040C53B2788FAF05BE11 /* Database.swift */; };
 		4C83556C119A7E72D7C10DF4 /* StatsCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D004D520AB7AE064F0E627 /* StatsCalculator.swift */; };
@@ -73,6 +74,7 @@
 		3103757D912D3312D350A994 /* PathOverlayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathOverlayTests.swift; sourceTree = "<group>"; };
 		3285AEAFF32A74D23E13CA3D /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
 		34BFFCAE2F45FD52D4F4C550 /* PlacesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacesTests.swift; sourceTree = "<group>"; };
+		41246890FF3EDA2DD2049B86 /* HeadingBeam.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadingBeam.swift; sourceTree = "<group>"; };
 		4138E232C776EAEF95045503 /* PointFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointFilterTests.swift; sourceTree = "<group>"; };
 		44AE55732A1F6CB549FD4268 /* PointFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointFilter.swift; sourceTree = "<group>"; };
 		4B163D8958B032E4D574360E /* WalkerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkerApp.swift; sourceTree = "<group>"; };
@@ -150,6 +152,7 @@
 			children = (
 				C13E6D91CBF3173DF4FC3CCD /* FogMapView.swift */,
 				0E934136236F5227C00B9AD0 /* FogRenderer.swift */,
+				41246890FF3EDA2DD2049B86 /* HeadingBeam.swift */,
 				FD1A2209F1C22EE94D298048 /* PathOverlay.swift */,
 				AFCDF0E5EAE8BDA952970708 /* TileReader.swift */,
 			);
@@ -377,6 +380,7 @@
 				77396BC594DB80FC3F40AF65 /* FogGrid.swift in Sources */,
 				11A70B1EB3D3D4FEE73C338B /* FogMapView.swift in Sources */,
 				8B796C2BA76F7391812FFD90 /* FogRenderer.swift in Sources */,
+				37BD5E5577C1E402E347E73F /* HeadingBeam.swift in Sources */,
 				FDC115890A551B9AA4F3CD49 /* LocationPoint.swift in Sources */,
 				198AB5BEB7F47716A6D9F2CB /* LocationService.swift in Sources */,
 				809C9A4AE62120C12370713D /* LogView.swift in Sources */,
