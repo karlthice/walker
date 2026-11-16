@@ -41,8 +41,10 @@ struct StatsView: View {
             }
             .task(id: service.revision) {
                 days = service.store.dailyStats()
-            }
-            .task {
+                // Walking bumps the revision every few seconds; coalesce those into one reload.
+                if countries != nil {
+                    try? await Task.sleep(for: .seconds(2))
+                }
                 await loadCountries()
             }
             .refreshable {
@@ -184,9 +186,13 @@ struct StatsView: View {
             return
         }
         let url = PointStore.defaultURL
-        countries = await Task.detached(priority: .userInitiated) {
-            (try? StatsCalculator.countryStats(databaseURL: url, countries: index)) ?? []
+        let loaded = await Task.detached(priority: .userInitiated) {
+            try? StatsCalculator.countryStats(databaseURL: url, countries: index)
         }.value
+        // A superseded load must not overwrite a newer one; a failed one (database still
+        // locked) keeps what is shown.
+        guard !Task.isCancelled else { return }
+        countries = loaded ?? countries ?? []
     }
 
     // MARK: - Formatting

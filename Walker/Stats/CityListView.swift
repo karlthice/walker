@@ -5,6 +5,9 @@ import SwiftUI
 struct CityListView: View {
     let country: CountryStat
 
+    @Environment(LocationService.self) private var service
+    /// The country's explored area, kept current here: `country` is a snapshot from when the list was opened.
+    @State private var exploredArea: Double?
     @State private var cities: [PlaceStat]?
     @State private var progress: ResolveProgress?
     @State private var error: String?
@@ -37,9 +40,10 @@ struct CityListView: View {
                     ForEach(cities) { city in
                         CityRow(city: city)
                     }
-                    let elsewhere = country.exploredArea - cities.reduce(0) { $0 + $1.exploredArea }
+                    let countryArea = exploredArea ?? country.exploredArea
+                    let elsewhere = countryArea - cities.reduce(0) { $0 + $1.exploredArea }
                     // Ignore rounding noise; show only a meaningful remainder.
-                    if elsewhere > max(country.exploredArea * 0.01, 100) {
+                    if elsewhere > max(countryArea * 0.01, 100) {
                         HStack {
                             Text("Elsewhere in \(country.name)")
                                 .foregroundStyle(.secondary)
@@ -59,8 +63,21 @@ struct CityListView: View {
             }
         }
         .navigationTitle([country.flag, country.name].compactMap { $0 }.joined(separator: " "))
-        .task { await load() }
+        .task { await keepUpdated() }
         .refreshable { await load() }
+    }
+
+    /// Loads now and again whenever new points are tracked, one load at a time: restarting
+    /// on every location fix would keep cancelling slow boundary lookups.
+    private func keepUpdated() async {
+        var loadedRevision: Int?
+        while !Task.isCancelled {
+            if loadedRevision != service.revision {
+                loadedRevision = service.revision
+                await load()
+            }
+            try? await Task.sleep(for: .seconds(3))
+        }
     }
 
     private func load() async {
@@ -74,11 +91,22 @@ struct CityListView: View {
                 await show(update) { try? await resolver.cityStats(country: code) }
             }
             cities = try await resolver.cityStats(country: code)
+            exploredArea = try await Self.exploredArea(country: code, countries: index)
         } catch is CancellationError {
+            // Leave the state to whatever replaced this load.
+            return
         } catch {
             self.error = error.localizedDescription
         }
         progress = nil
+    }
+
+    private static func exploredArea(country: String, countries: CountryIndex) async throws -> Double {
+        let url = PointStore.defaultURL
+        let stats = try await Task.detached(priority: .userInitiated) {
+            try StatsCalculator.countryStats(databaseURL: url, countries: countries)
+        }.value
+        return stats.first { $0.code == country }?.exploredArea ?? 0
     }
 
     /// Shows progress, refreshing the list as cities come in (not after every tile).

@@ -115,11 +115,47 @@ actor PlaceResolver {
                 shape.area = Self.landArea(of: shape, country: countryShape)
             }
             try insertCity(place, shape: shape, country: country)
-            self.cities?[place.id] = EdgeIndex(shape: shape)
+            let index = EdgeIndex(shape: shape)
+            self.cities?[place.id] = index
+            try reassignFinishedTiles(overlapping: index, except: tile)
             try log("Found \(place.name) (\(StatsView.formatArea(shape.area)))")
             await status("Found \(place.name)")
         }
         try save(tile, owner: owner)
+    }
+
+    /// A finished tile can have explored cells no cached boundary contained, e.g. when it hit
+    /// the lookup limit, and only a change to its cells makes it pending again. When a new
+    /// boundary turns up, reassign the finished tiles it overlaps, without lookups.
+    private func reassignFinishedTiles(overlapping index: EdgeIndex, except current: Tile) throws {
+        let zoom = FogGrid.fineTileZoom
+        let bbox = index.shape.bbox
+        let n = Double(FogGrid.cellCount(zoom: zoom))
+        let tileY = { (latitude: Double) in
+            Int64(FogGrid.cellPosition(of: CLLocationCoordinate2D(latitude: latitude, longitude: 0), zoom: zoom).y)
+        }
+        let tiles = try database().query(
+            """
+            SELECT t.x, t.y, t.bits, p.cells FROM tiles t
+            JOIN tile_places p ON p.x = t.x AND p.y = t.y
+            WHERE t.z = ? AND t.x BETWEEN ? AND ? AND t.y BETWEEN ? AND ?
+            """,
+            [.int(Int64(zoom)),
+             .int(Int64(((bbox[0] + 180) / 360 * n).rounded(.down))), .int(Int64(((bbox[2] + 180) / 360 * n).rounded(.down))),
+             .int(tileY(bbox[3])), .int(tileY(bbox[1]))]
+        ) { row in
+            (x: Int(row.int(0)), y: Int(row.int(1)), bits: TileBits(data: row.blob(2)), cells: Int(row.int(3)))
+        }
+        for row in tiles where !(row.x == current.x && row.y == current.y) {
+            // Tiles whose cells changed are pending and get a full pass anyway.
+            guard let bits = row.bits, bits.count == row.cells else { continue }
+            let tile = Tile(x: row.x, y: row.y, bits: bits)
+            var owner = [Int64?](repeating: nil, count: Self.cellCount)
+            for (id, city) in cities ?? [:] {
+                assign(city, to: id, in: tile, owner: &owner)
+            }
+            try save(tile, owner: owner)
+        }
     }
 
     // MARK: - Cells

@@ -114,14 +114,18 @@ struct PolygonTests {
 /// Stands in for Nominatim: Reykjavíkurborg inside its boundary, nothing elsewhere.
 private actor FakeLookup: PlaceLookup {
     let city: OSMPlace
+    /// Finds nothing on the first call, like a lookup that failed to match.
+    let missFirst: Bool
     private(set) var calls = 0
 
-    init() throws {
+    init(missFirst: Bool = false) throws {
         city = try #require(try fixture("nominatim-reykjavik-city"))
+        self.missFirst = missFirst
     }
 
     func city(at coordinate: CLLocationCoordinate2D) async throws -> OSMPlace? {
         calls += 1
+        if missFirst && calls == 1 { return nil }
         return city.shape?.contains(coordinate) == true ? city : nil
     }
 }
@@ -166,6 +170,21 @@ struct PlaceResolverTests {
         // Nothing changed, so another pass makes no lookups.
         try await resolver.resolveCities(country: "ISL", countries: countries) { _ in }
         #expect(await lookup.calls == 1)
+    }
+
+    @Test func cityFoundLaterClaimsCellsOfFinishedTiles() async throws {
+        let (url, store) = try makeStore()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        try walk(store, [miðborgPoint, vesturbærPoint])
+        let total = store.dailyStats().reduce(0) { $0 + $1.totals.area }
+
+        // The first tile's lookup finds nothing, so it is finished with its cells unowned.
+        let lookup = try FakeLookup(missFirst: true)
+        let resolver = PlaceResolver(databaseURL: url, lookup: lookup)
+        try await resolver.resolveCities(country: "ISL", countries: try #require(CountryIndex.shared)) { _ in }
+        #expect(await lookup.calls == 2)
+        let city = try #require(try await resolver.cityStats(country: "ISL").first)
+        #expect(abs(city.exploredArea - total) / total < 0.01)
     }
 
     @Test func reportsProgress() async throws {
