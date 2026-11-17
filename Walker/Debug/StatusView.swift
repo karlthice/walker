@@ -5,6 +5,7 @@ struct StatusView: View {
     @Environment(LocationService.self) private var service
     @State private var storedPoints = 0
     @State private var exploredTiles = 0
+    private let photos = PhotoLibrary.shared
 
     var body: some View {
         @Bindable var service = service
@@ -15,6 +16,14 @@ struct StatusView: View {
                     LabeledContent("Precise location", value: service.preciseLocation ? "On" : "Off")
                     if let title = permissionButtonTitle {
                         Button(title) { service.requestPermission() }
+                    }
+                    LabeledContent("Photos", value: photoAccessLabel)
+                    if photos.access == .denied || photos.access == .restricted || photos.access == .limited {
+                        Button(photos.access == .limited ? "Allow access to all photos" : "Open Settings for Photos") {
+                            if let url = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(url)
+                            }
+                        }
                     }
                 } header: {
                     Text("Permission")
@@ -43,10 +52,24 @@ struct StatusView: View {
                 }
             }
             .navigationTitle("Walker")
+            .task {
+                // Reads the current access only; asking happens from the map's photo button.
+                photos.refreshAccess()
+            }
             .task(id: service.revision) {
                 storedPoints = service.store.pointCount()
                 exploredTiles = service.store.tileCount(zoom: FogGrid.fineTileZoom)
             }
+        }
+    }
+
+    private var photoAccessLabel: String {
+        switch photos.access {
+        case .authorized: "All photos"
+        case .limited: "Selected photos"
+        case .denied: "Denied"
+        case .restricted: "Restricted"
+        default: "Not asked"
         }
     }
 

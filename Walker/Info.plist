@@ -24,6 +24,8 @@
 	<string>Walker clears the fog wherever you go, even when the app is closed. Your location never leaves this iPhone.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Walker uses your location to clear the fog on the map where you have been.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Walker shows your photos on the map where you took them. Your photos never leave this iPhone.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
