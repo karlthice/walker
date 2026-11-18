@@ -1,0 +1,322 @@
+country,name,osm_relation,search
+ISL,Reykjavík,2580605,
+ESP,Madrid,5326784,
+ESP,Barcelona,347950,
+ESP,Valencia,344953,
+ESP,Seville,342563,Sevilla
+ESP,Málaga,340746,
+ESP,Granada,344685,
+ESP,Bilbao,339549,
+ESP,Palma,341321,Palma de Mallorca
+JPN,Tokyo,19631009,
+JPN,Kyoto,357794,
+JPN,Osaka,358674,
+JPN,Kanazawa,4800041,
+JPN,Hiroshima,4097196,
+JPN,Nara,3227707,
+JPN,Sapporo,4085749,
+JPN,Fukuoka,4008611,
+JPN,Yokohama,2689482,
+JPN,Nagoya,4576938,
+JPN,Kobe,900329,
+FRA,Paris,71525,
+FRA,Nice,170100,
+FRA,Lyon,120965,
+FRA,Marseille,76469,
+FRA,Bordeaux,105270,
+FRA,Strasbourg,71033,
+FRA,Toulouse,35738,
+FRA,Nantes,59874,
+FRA,Lille,58404,
+FRA,Montpellier,28722,
+ITA,Rome,41485,Roma
+ITA,Milan,44915,Milano
+ITA,Venice,44741,Venezia
+ITA,Florence,42602,Firenze
+ITA,Naples,40767,Napoli
+ITA,Turin,43992,Torino
+ITA,Bologna,43172,
+ITA,Verona,44830,
+ITA,Genoa,44875,Genova
+ITA,Palermo,39513,
+ITA,Pisa,42527,
+GBR,London,175342,Greater London
+GBR,Edinburgh,1920901,City of Edinburgh
+GBR,Manchester,146656,
+GBR,Liverpool,172987,
+GBR,Glasgow,1906767,Glasgow City
+GBR,Birmingham,162378,
+GBR,Bristol,57539,
+GBR,Oxford,394037,
+GBR,Cambridge,295355,
+GBR,York,134353,
+DEU,Berlin,62422,
+DEU,Munich,62428,München
+DEU,Hamburg,62782,
+DEU,Frankfurt,62400,Frankfurt am Main
+DEU,Cologne,62578,Köln
+DEU,Dresden,191645,
+DEU,Düsseldorf,62539,
+DEU,Stuttgart,62375,
+DEU,Heidelberg,62487,
+DEU,Nuremberg,62780,Nürnberg
+DEU,Leipzig,62649,
+PRT,Lisbon,5400890,Lisboa
+PRT,Porto,3372453,
+PRT,Faro,5404220,
+PRT,Funchal,8421413,
+PRT,Coimbra,5379538,
+PRT,Braga,4115866,
+GRC,Athens,1370736,Αθήνα
+GRC,Thessaloniki,1770680,Θεσσαλονίκη
+GRC,Heraklion,2187393,Ηράκλειο
+GRC,Chania,2187320,Χανιά
+GRC,Rhodes,15962116,Ρόδος
+NLD,Amsterdam,271110,
+NLD,Rotterdam,1411101,
+NLD,The Hague,192737,Den Haag
+NLD,Utrecht,1433619,
+NLD,Haarlem,2712154,
+NLD,Maastricht,2078292,
+BEL,Brussels,2404020,Brussels-Capital Region
+BEL,Antwerp,59518,Antwerpen
+BEL,Bruges,562654,Brugge
+BEL,Ghent,897671,Gent
+BEL,Liège,1681788,
+CHE,Zürich,1682248,
+CHE,Geneva,1685488,Genève
+CHE,Bern,1682378,
+CHE,Basel,1683619,
+CHE,Lucerne,1682891,Luzern
+CHE,Lausanne,1685018,
+CHE,Interlaken,1682493,
+AUT,Vienna,109166,Wien
+AUT,Salzburg,86538,
+AUT,Innsbruck,4835169,
+AUT,Graz,34719,
+CZE,Prague,435514,Praha
+CZE,Brno,438171,
+CZE,Český Krumlov,438508,
+CZE,Karlovy Vary,439482,
+HUN,Budapest,1244004,
+POL,Warsaw,336075,Warszawa
+POL,Kraków,449696,
+POL,Gdańsk,1553098,
+POL,Wrocław,451516,
+POL,Poznań,2456294,
+DNK,Copenhagen,2192363,København
+DNK,Aarhus,1784663,
+DNK,Odense,2178124,
+SWE,Stockholm,398021,
+SWE,Gothenburg,935611,Göteborg
+SWE,Malmö,10663667,
+SWE,Uppsala,305455,
+NOR,Oslo,2775550,
+NOR,Bergen,404159,
+NOR,Trondheim,10143487,
+NOR,Stavanger,10150658,
+NOR,Tromsø,407754,
+FIN,Helsinki,34914,
+FIN,Turku,399906,
+FIN,Tampere,3579531,
+IRL,Dublin,1109531,Dublin City
+IRL,Cork,11797890,
+IRL,Galway,1390623,
+HRV,Zagreb,226224,
+HRV,Split,11153757,
+HRV,Dubrovnik,8796464,
+HRV,Zadar,12597837,
+HRV,Pula,2259875,
+SVN,Ljubljana,1675898,
+SVK,Bratislava,1702499,
+EST,Tallinn,2164745,
+EST,Tartu,2153396,
+LVA,Riga,13048688,
+LTU,Vilnius,1529146,
+LTU,Kaunas,1567544,
+ROU,Bucharest,377733,București
+ROU,Cluj-Napoca,3277038,
+ROU,Brașov,10367676,
+ROU,Sibiu,9846497,
+BGR,Sofia,4283101,
+BGR,Plovdiv,1955801,
+BGR,Varna,13477567,
+SRB,Belgrade,2728438,
+SRB,Novi Sad,9273976,
+MNE,Podgorica,8882104,
+MNE,Kotor,2319532,
+ALB,Tirana,1250106,
+MKD,Skopje,6966465,
+MKD,Ohrid,6483644,
+BIH,Sarajevo,15445108,
+BIH,Mostar,8480923,
+MLT,Valletta,7510580,
+CYP,Limassol,3263730,
+CYP,Paphos,533386,
+CYP,Larnaca,533154,
+LUX,Luxembourg,407489,
+TUR,Istanbul,1766104 1765892 1765893 1276548 1276889 1765896,
+TUR,Ankara,1812321 1812317,
+TUR,Izmir,1269255,
+TUR,Antalya,1727535 1727384,
+GEO,Tbilisi,1996871,
+GEO,Batumi,2009237,
+ARM,Yerevan,364087,
+AZE,Baku,2415335,
+UKR,Kyiv,421866,
+UKR,Lviv,2032280,
+UKR,Odesa,12888405,
+RUS,Moscow,102269,
+RUS,Saint Petersburg,337422,
+RUS,Kazan,367666,
+BLR,Minsk,59195,
+MDA,Chișinău,1748490,
+USA,New York,175905,New York City
+USA,Los Angeles,207359,
+USA,San Francisco,111968,
+USA,Chicago,122604,
+USA,Las Vegas,170117,
+USA,Miami,1216769,
+USA,Washington,162069,Washington
+USA,Boston,2315704,
+USA,Seattle,237385,
+USA,New Orleans,131885,
+USA,Orlando,1128379,
+USA,San Diego,253832,
+USA,Honolulu,3861844,
+USA,Philadelphia,188022,
+CAN,Toronto,324211,
+CAN,Montreal,1634158,Montréal
+CAN,Vancouver,1852574,
+CAN,Quebec City,2319206,Québec
+CAN,Ottawa,4136816,
+CAN,Calgary,3227127,
+MEX,Mexico City,17483459,Ciudad de México
+MEX,Cancún,5961443,Benito Juárez Quintana Roo
+MEX,Guadalajara,5605820,
+MEX,Oaxaca,5999647,Oaxaca de Juárez
+MEX,Playa del Carmen,6329645,Solidaridad
+MEX,Puerto Vallarta,18522440,
+MEX,Mérida,5961522,
+MEX,San Miguel de Allende,2372616,
+CUB,Havana,1854615,La Habana
+DOM,Santo Domingo,7407678,
+JAM,Kingston,6577227,
+CRI,San José,19827540,
+PAN,Panama City,8415626,Panamá
+GTM,Guatemala City,67992,Guatemala
+GTM,Antigua Guatemala,374549,
+COL,Bogotá,7426387,
+COL,Medellín,1343264,
+COL,Cartagena,1343457,
+PER,Lima,1944756,
+PER,Cusco,1923740,
+ARG,Buenos Aires,1224652,Ciudad Autónoma de Buenos Aires
+ARG,Mendoza,4206710,
+ARG,Córdoba,5167559,
+ARG,Bariloche,3405247,San Carlos de Bariloche
+BRA,Rio de Janeiro,2697338,
+BRA,São Paulo,298285,
+BRA,Salvador,362362,
+BRA,Florianópolis,296561,
+BRA,Foz do Iguaçu,297473,
+CHL,Santiago,164609,
+CHL,Valparaíso,110808,
+ECU,Quito,113714,
+BOL,La Paz,4499870,
+URY,Montevideo,2929054,
+CHN,Beijing,288600 568660 2988933 5505984,
+CHN,Shanghai,371650 1278188 398899 398353 398351 398350 398886,
+CHN,Xi'an,3226096 3226088 3226093 3226098,
+CHN,Guangzhou,3987394 3287617 3287615 3987435,
+CHN,Shenzhen,5664191 5664194 5664195,
+CHN,Chengdu,4734760 4734707 3579975 4734743 4734807,
+CHN,Hangzhou,4591409 4591384 4591410,
+CHN,Guilin,3471980 3471977 3471979 3471978,
+TWN,Taipei,1293250,
+TWN,Kaohsiung,2127079,
+TWN,Tainan,2418506,
+TWN,Taichung,2921154,
+KOR,Seoul,2297418,
+KOR,Busan,2396450,
+KOR,Jeju,5523589,Jeju-si
+KOR,Gyeongju,7740688,
+THA,Bangkok,92277,
+THA,Chiang Mai,18271830,
+THA,Phuket,18271854,
+THA,Pattaya,12645794,
+VNM,Hanoi,1903516,
+VNM,Ho Chi Minh City,1973756,
+VNM,Da Nang,1891418,
+VNM,Hội An,19337535,
+VNM,Huế,1891483,
+KHM,Phnom Penh,2199033,
+LAO,Vientiane,6979808,
+LAO,Luang Prabang,5831718,
+MMR,Yangon,6004094,
+MYS,Kuala Lumpur,2939672,
+MYS,George Town,11203697,
+MYS,Malacca,4463194,Melaka
+IDN,Jakarta,6362934,
+IDN,Denpasar,7789828,
+IDN,Yogyakarta,5615250,
+PHL,Manila,103703,
+PHL,Cebu City,12455830,
+IND,Delhi,21180767,
+IND,Mumbai,7964376 7964375,
+IND,Jaipur,7923743,
+IND,Kolkata,9381363,
+IND,Bengaluru,7902476,
+IND,Chennai,1766358,
+IND,Panaji,21793032,
+NPL,Kathmandu,12394677,
+NPL,Pokhara,6104486,
+LKA,Colombo,16132,
+MDV,Malé,6599336,
+PAK,Lahore,16117666,
+PAK,Islamabad,358002,
+ARE,Dubai,4479752,
+ARE,Abu Dhabi,4479763,
+QAT,Doha,27332,
+OMN,Muscat,19164110,
+ISR,Jerusalem,1381350,
+ISR,Tel Aviv,1382494,Tel Aviv-Yafo
+ISR,Haifa,1387888,
+LBN,Beirut,316552,
+EGY,Cairo,4103336,
+EGY,Alexandria,3061846,
+EGY,Luxor,3726211,
+MAR,Marrakesh,2799538,Marrakech
+MAR,Fez,2799557,Fès
+MAR,Casablanca,4072985,
+MAR,Rabat,2799215,
+MAR,Tangier,2758781,Tanger
+MAR,Chefchaouen,6053065,
+TUN,Tunis,1435835,
+ZAF,Cape Town,79604,City of Cape Town
+ZAF,Johannesburg,594508,City of Johannesburg
+ZAF,Durban,610720,eThekwini
+KEN,Nairobi,3492709,
+KEN,Mombasa,3495554,
+TZA,Dar es Salaam,7202037,
+TZA,Zanzibar,12990995,Zanzibar City
+TZA,Arusha,13015762,
+ETH,Addis Ababa,1707699,
+NGA,Lagos,3718182,
+GHA,Accra,12803764,
+SEN,Dakar,12982139,
+RWA,Kigali,1708283,
+NAM,Windhoek,8650326,
+MUS,Port Louis,3488099,
+AUS,Sydney,1251066,City of Sydney
+AUS,Melbourne,2404870,City of Melbourne
+AUS,Brisbane,11677792,City of Brisbane
+AUS,Perth,11343564,City of Perth
+AUS,Adelaide,3093825,City of Adelaide
+AUS,Hobart,10625466,City of Hobart
+AUS,Cairns,11677109,
+AUS,Gold Coast,11675459,City of Gold Coast
+AUS,Canberra,3339545,
+NZL,Auckland,17000522,
+NZL,Wellington,4266321,Wellington City
+NZL,Christchurch,1640161,Christchurch City

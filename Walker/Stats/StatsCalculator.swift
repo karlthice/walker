@@ -51,4 +51,11 @@ enum StatsCalculator {
             }
             .sorted { $0.exploredArea > $1.exploredArea }
     }
+
+    /// The bundled cities in a country and how much of each is explored (see `TileCities`).
+    static func cityStats(databaseURL: URL, country: String, cities: CityIndex) throws -> [PlaceStat] {
+        let db = try Database(path: databaseURL.path, create: false)
+        try TileCities.update(db, cities: cities)
+        return try TileCities.stats(db, country: country, cities: cities)
+    }
 }

@@ -26,7 +26,7 @@ targets:
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         NSLocationWhenInUseUsageDescription: Walker uses your location to clear the fog on the map where you have been.
-        NSLocationAlwaysAndWhenInUseUsageDescription: Walker clears the fog wherever you go, even when the app is closed. Your location never leaves this iPhone.
+        NSLocationAlwaysAndWhenInUseUsageDescription: Walker clears the fog wherever you go, even when the app is closed. Your tracks never leave this iPhone.
         NSPhotoLibraryUsageDescription: Walker shows your photos on the map where you took them. Your photos never leave this iPhone.
     settings:
       base:

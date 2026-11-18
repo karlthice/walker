@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// The cities and municipalities explored in a country, with the share of each uncovered.
-/// Boundaries come from OpenStreetMap and are looked up the first time they're needed.
+/// The major cities of a country bundled with the app, with the share of each uncovered.
 struct CityListView: View {
     let country: CountryStat
 
@@ -9,32 +8,13 @@ struct CityListView: View {
     /// The country's explored area, kept current here: `country` is a snapshot from when the list was opened.
     @State private var exploredArea: Double?
     @State private var cities: [PlaceStat]?
-    @State private var progress: ResolveProgress?
-    @State private var error: String?
 
     var body: some View {
         List {
-            if let progress, progress.done < progress.total {
-                Section {
-                    ProgressView(value: Double(progress.done), total: Double(progress.total)) {
-                        Text(progress.status ?? "Looking up cities…")
-                    } currentValueLabel: {
-                        Text("\(progress.done) of \(progress.total) map tiles")
-                    }
-                }
-            }
-            if let error {
-                Section {
-                    Label(error, systemImage: "exclamationmark.triangle")
-                        .foregroundStyle(.orange)
-                    Button("Try again") { Task { await load() } }
-                }
-            }
-
             Section {
                 if let cities {
-                    if cities.isEmpty && progress == nil && error == nil {
-                        Text("No cities found.")
+                    if cities.isEmpty {
+                        Text("No major cities in \(country.name) yet.")
                             .foregroundStyle(.secondary)
                     }
                     ForEach(cities) { city in
@@ -57,64 +37,40 @@ struct CityListView: View {
                     ProgressView()
                 }
             } header: {
-                Text("Cities and municipalities")
+                Text("Major cities")
             } footer: {
-                Text("Boundaries © OpenStreetMap contributors.")
+                Text("City boundaries © OpenStreetMap contributors.")
             }
         }
         .navigationTitle([country.flag, country.name].compactMap { $0 }.joined(separator: " "))
-        .task { await keepUpdated() }
+        .task(id: service.revision) {
+            // Walking bumps the revision every few seconds; coalesce those into one reload.
+            if cities != nil {
+                try? await Task.sleep(for: .seconds(2))
+                guard !Task.isCancelled else { return }
+            }
+            await load()
+        }
         .refreshable { await load() }
     }
 
-    /// Loads now and again whenever new points are tracked, one load at a time: restarting
-    /// on every location fix would keep cancelling slow boundary lookups.
-    private func keepUpdated() async {
-        var loadedRevision: Int?
-        while !Task.isCancelled {
-            if loadedRevision != service.revision {
-                loadedRevision = service.revision
-                await load()
-            }
-            try? await Task.sleep(for: .seconds(3))
-        }
-    }
-
     private func load() async {
-        let resolver = PlaceResolver.shared
-        let code = country.code
-        error = nil
-        do {
-            cities = try await resolver.cityStats(country: code)
-            guard let index = CountryIndex.shared else { return }
-            try await resolver.resolveCities(country: code, countries: index) { update in
-                await show(update) { try? await resolver.cityStats(country: code) }
-            }
-            cities = try await resolver.cityStats(country: code)
-            exploredArea = try await Self.exploredArea(country: code, countries: index)
-        } catch is CancellationError {
-            // Leave the state to whatever replaced this load.
+        guard let cityIndex = CityIndex.shared, let countryIndex = CountryIndex.shared else {
+            cities = []
             return
-        } catch {
-            self.error = error.localizedDescription
         }
-        progress = nil
-    }
-
-    private static func exploredArea(country: String, countries: CountryIndex) async throws -> Double {
         let url = PointStore.defaultURL
-        let stats = try await Task.detached(priority: .userInitiated) {
-            try StatsCalculator.countryStats(databaseURL: url, countries: countries)
+        let code = country.code
+        let loaded = await Task.detached(priority: .userInitiated) { () -> (cities: [PlaceStat], area: Double?)? in
+            guard let cities = try? StatsCalculator.cityStats(databaseURL: url, country: code, cities: cityIndex) else { return nil }
+            let area = (try? StatsCalculator.countryStats(databaseURL: url, countries: countryIndex))?.first { $0.code == code }?.exploredArea
+            return (cities, area)
         }.value
-        return stats.first { $0.code == country }?.exploredArea ?? 0
-    }
-
-    /// Shows progress, refreshing the list as cities come in (not after every tile).
-    private func show(_ update: ResolveProgress, refresh: () async -> [PlaceStat]?) async {
-        progress = update
-        if update.status == nil, update.done == update.total || update.done % 10 == 0, let updated = await refresh() {
-            cities = updated
-        }
+        // A superseded load must not overwrite a newer one; a failed one (database still
+        // locked) keeps what is shown.
+        guard !Task.isCancelled else { return }
+        cities = loaded?.cities ?? cities ?? []
+        exploredArea = loaded?.area ?? exploredArea
     }
 }
 
@@ -125,8 +81,8 @@ private struct CityRow: View {
         HStack {
             VStack(alignment: .leading) {
                 Text(city.name)
-                if let english = city.englishName {
-                    Text(english)
+                if let local = city.localName {
+                    Text(local)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -141,6 +97,8 @@ private struct CityRow: View {
                     .monospacedDigit()
             }
         }
+        // Cities not visited yet are listed as somewhere to go, but dimmed.
+        .foregroundStyle(city.exploredArea > 0 ? .primary : .secondary)
         .accessibilityElement(children: .combine)
     }
 }

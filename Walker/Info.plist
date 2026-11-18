@@ -21,7 +21,7 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Walker clears the fog wherever you go, even when the app is closed. Your location never leaves this iPhone.</string>
+	<string>Walker clears the fog wherever you go, even when the app is closed. Your tracks never leave this iPhone.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Walker uses your location to clear the fog on the map where you have been.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

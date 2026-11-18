@@ -3,8 +3,6 @@ import CoreLocation
 /// Polygon helpers over rings of flattened lon, lat pairs (not closed: the last point
 /// connects back to the first). Holes are just more rings; the even-odd rule handles them.
 enum PolygonMath {
-    private static let earthRadius = 6_371_008.8
-
     static func contains(rings: [[Double]], longitude: Double, latitude: Double) -> Bool {
         var inside = false
         for ring in rings {
@@ -21,64 +19,6 @@ enum PolygonMath {
         return inside
     }
 
-    /// Spherical area of one ring in m².
-    static func ringArea(_ ring: [Double]) -> Double {
-        var total = 0.0
-        var j = ring.count - 2
-        for i in stride(from: 0, to: ring.count, by: 2) {
-            let (lon1, lat1, lon2, lat2) = (ring[j], ring[j + 1], ring[i], ring[i + 1])
-            total += (lon2 - lon1) * .pi / 180 * (2 + sin(lat1 * .pi / 180) + sin(lat2 * .pi / 180))
-            j = i
-        }
-        return abs(total) * earthRadius * earthRadius / 2
-    }
-
-    /// Approximate area in m² of the overlap of two shapes, by horizontal strips of about
-    /// `step` metres: in each strip, the longitude intervals inside both are intersected.
-    static func intersectionArea(_ a: [[Double]], _ b: [[Double]], step: Double = 200) -> Double {
-        let boxA = boundingBox(of: a), boxB = boundingBox(of: b)
-        let minLat = max(boxA[1], boxB[1]), maxLat = min(boxA[3], boxB[3])
-        guard minLat < maxLat, max(boxA[0], boxB[0]) < min(boxA[2], boxB[2]) else { return 0 }
-
-        let metresPerDegree = 111_320.0
-        let rows = min(max(Int((maxLat - minLat) * metresPerDegree / step), 50), 2000)
-        let rowHeight = (maxLat - minLat) / Double(rows)
-        var total = 0.0
-        for row in 0..<rows {
-            let latitude = minLat + (Double(row) + 0.5) * rowHeight
-            let overlap = intersect(intervals(a, latitude: latitude), intervals(b, latitude: latitude))
-            total += overlap * metresPerDegree * cos(latitude * .pi / 180) * rowHeight * metresPerDegree
-        }
-        return total
-    }
-
-    /// Longitude intervals inside the rings along a line of latitude (even-odd rule).
-    private static func intervals(_ rings: [[Double]], latitude: Double) -> [(Double, Double)] {
-        var crossings: [Double] = []
-        for ring in rings {
-            var j = ring.count - 2
-            for i in stride(from: 0, to: ring.count, by: 2) {
-                let (xi, yi, xj, yj) = (ring[i], ring[i + 1], ring[j], ring[j + 1])
-                if (yi > latitude) != (yj > latitude) {
-                    crossings.append(xi + (latitude - yi) * (xj - xi) / (yj - yi))
-                }
-                j = i
-            }
-        }
-        crossings.sort()
-        return stride(from: 0, to: crossings.count - 1, by: 2).map { (crossings[$0], crossings[$0 + 1]) }
-    }
-
-    /// Total length of the overlap of two sorted interval lists.
-    private static func intersect(_ a: [(Double, Double)], _ b: [(Double, Double)]) -> Double {
-        var i = 0, j = 0, total = 0.0
-        while i < a.count && j < b.count {
-            total += max(0, min(a[i].1, b[j].1) - max(a[i].0, b[j].0))
-            if a[i].1 < b[j].1 { i += 1 } else { j += 1 }
-        }
-        return total
-    }
-
     static func boundingBox(of rings: [[Double]]) -> [Double] {
         var box = [Double.infinity, .infinity, -Double.infinity, -Double.infinity]
         for ring in rings {
@@ -93,7 +33,7 @@ enum PolygonMath {
     }
 }
 
-/// An administrative boundary and its land area.
+/// A city boundary and its land area.
 struct PlaceShape: Codable, Equatable, Sendable {
     var rings: [[Double]]
     /// m², outer rings minus holes.

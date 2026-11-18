@@ -1,7 +1,7 @@
 import Foundation
 
 enum LogKind: String {
-    case launch, auth, resume, pause, geofence, visit, places, info, error
+    case launch, auth, resume, pause, geofence, visit, info, error
 }
 
 struct LogEvent: Identifiable {
@@ -172,19 +172,8 @@ final class PointStore {
                 area REAL NOT NULL,
                 distance REAL NOT NULL
             );
-            CREATE TABLE IF NOT EXISTS places (
-                id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL,
-                english TEXT,
-                kind TEXT NOT NULL,
-                parent INTEGER,
-                country TEXT,
-                area REAL NOT NULL,
-                shape TEXT,
-                lat REAL,
-                lon REAL
-            );
-            CREATE INDEX IF NOT EXISTS places_parent ON places(parent);
+            -- Cities were looked up online and saved here; they are bundled now.
+            DROP TABLE IF EXISTS places;
             CREATE TABLE IF NOT EXISTS tile_countries (
                 x INTEGER NOT NULL,
                 y INTEGER NOT NULL,
@@ -207,15 +196,10 @@ final class PointStore {
                 area REAL NOT NULL,
                 PRIMARY KEY (x, y, place)
             ) WITHOUT ROWID;
-                        CREATE TABLE IF NOT EXISTS meta (
+            CREATE TABLE IF NOT EXISTS meta (
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL
             );
-            """)
-        // Districts and neighbourhoods are no longer tracked; only cities remain.
-        try db.execute("""
-            DELETE FROM tile_place_areas WHERE place IN (SELECT id FROM places WHERE kind != 'city');
-            DELETE FROM places WHERE kind != 'city';
             """)
         try db.run(
             "DELETE FROM events WHERE id <= (SELECT MAX(id) FROM events) - ?",
