@@ -21,6 +21,8 @@ targets:
         CFBundleShortVersionString: "0.1"
         CFBundleVersion: "1"
         UILaunchScreen: {}
+        # Uses no encryption beyond what iOS provides, so uploads skip the export compliance question.
+        ITSAppUsesNonExemptEncryption: false
         UIBackgroundModes: [location]
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIApplicationSceneManifest:

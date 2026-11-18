@@ -109,10 +109,7 @@ final class LocationService: NSObject {
 
         start(reason: "launch")
 
-        // First launch: ask right away rather than waiting for a tap on the Status tab.
-        if authorization == .notDetermined {
-            manager.requestWhenInUseAuthorization()
-        }
+        // On first launch the welcome screen asks, after explaining why.
     }
 
     func requestPermission() {
