@@ -18,7 +18,7 @@ targets:
       path: Walker/Info.plist
       properties:
         CFBundleDisplayName: Walker
-        CFBundleShortVersionString: "0.1"
+        CFBundleShortVersionString: "1.0"
         CFBundleVersion: "1"
         UILaunchScreen: {}
         # Uses no encryption beyond what iOS provides, so uploads skip the export compliance question.

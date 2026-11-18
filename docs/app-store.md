@@ -4,12 +4,11 @@ Everything App Store Connect asks for, drafted. Text in [brackets] needs your in
 
 ## Still to do by hand
 
-1. **Pick the name.** "Walker" is probably taken on the App Store; names must be unique there. The name on the home screen (`CFBundleDisplayName`) can stay "Walker" even if the store name is longer, e.g. "Walker – Fog of the World" [check availability when creating the app record].
-2. **Set the version.** `project.yml` has `CFBundleShortVersionString: "0.1"`; a first release is usually `1.0`. Bump `CFBundleVersion` (the build number) on every upload.
-3. **Publish the privacy policy** (`docs/privacy-policy.md`) somewhere public and put its URL in App Store Connect. A support URL is also required; it can be the same site.
-4. **Create the app record** in App Store Connect with bundle ID `com.karlthice.walker`.
-5. **Archive and upload** from Xcode (Product → Archive → Distribute App), then test through TestFlight on a real phone for a few days before submitting.
-6. **Take screenshots** on a 6.9-inch iPhone (or its simulator) [check the current required sizes in App Store Connect].
+1. **Publish the privacy policy and a support page** on kringum.is, e.g. `https://kringum.is/walker/privacy` and `https://kringum.is/walker` [use whatever paths you choose, and put the same ones in App Store Connect and in the policy's contact line].
+2. **Create the app record** in App Store Connect with the name **Walker - Explore your city** and bundle ID `com.karlthice.walker`. The name must be unique on the App Store; you'll find out when you create the record. Under the icon on the home screen the app stays "Walker" (`CFBundleDisplayName`).
+3. **Bump the build number** (`CFBundleVersion` in `project.yml`, now 1) on every upload; the version is 1.0.
+4. **Archive and upload** from Xcode (Product → Archive → Distribute App), then test through TestFlight on a real phone for a few days before submitting.
+5. **Take screenshots** on a 6.9-inch iPhone (or its simulator) [check the current required sizes in App Store Connect].
 
 ## Already handled in the app
 
@@ -21,14 +20,20 @@ Everything App Store Connect asks for, drafted. Text in [brackets] needs your in
 
 ## Listing
 
+**Name** (30 characters max): Walker - Explore your city
+
+**Privacy policy URL:** [https://kringum.is/walker/privacy]
+
+**Support URL:** [https://kringum.is/walker]
+
 **Subtitle** (30 characters max): Clear the fog by exploring
 
 **Primary category:** Travel. **Secondary:** Navigation.
 
 **Age rating:** 4+ (no objectionable content; the only photos shown are your own).
 
-**Keywords** (100 characters max, comma separated):
-explore,fog,map,walking,travel,cities,countries,exploration,streets,journey,discover,trip,wander
+**Keywords** (100 characters max, comma separated; the words in the name are already searched, so they aren't repeated here):
+fog,map,walking,travel,countries,exploration,streets,discover,trip,wander,neighborhood,hiking,urban
 
 **Promotional text** (can be changed without a new release):
 See how much of your city you have really explored. Walk anywhere and the fog lifts behind you.

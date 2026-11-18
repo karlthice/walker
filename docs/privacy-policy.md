@@ -37,4 +37,4 @@ If this policy changes, the new version will be posted here with a new date.
 
 ## Contact
 
-Questions about this policy: [contact email or support page].
+Questions about this policy: see [kringum.is/walker](https://kringum.is/walker) [or add a contact email].
