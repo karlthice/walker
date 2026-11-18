@@ -129,6 +129,18 @@ final class LocationService: NSObject {
         }
     }
 
+    /// Deletes everything Walker has recorded. Tracking carries on from here if it is on.
+    func deleteAllData() throws {
+        try store.deleteAll(gridVersion: Revealer.version)
+        filter = PointFilter()
+        imprecise = nil
+        lastAccepted = nil
+        acceptedThisSession = 0
+        rejectedThisSession = 0
+        // Also bumps the revision, so the map and stats reload.
+        log(.info, "All data deleted")
+    }
+
     func log(_ kind: LogKind, _ message: String) {
         store.log(kind, message)
         revision += 1

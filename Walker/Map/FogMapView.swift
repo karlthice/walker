@@ -9,6 +9,7 @@ struct FogMapView: View {
     @State private var points: [LocationPoint] = []
     @State private var openPhotos: PhotoSelection?
     @State private var photoAccessAlert = false
+    @State private var showingSettings = false
     private let photos = PhotoLibrary.shared
 
     var body: some View {
@@ -35,6 +36,14 @@ struct FogMapView: View {
                     }
                 }
                 .padding()
+            }
+            .overlay(alignment: .topTrailing) {
+                mapButton("gearshape", isOn: false, label: "Settings") { showingSettings = true }
+                    .padding()
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+                    .environment(service)
             }
             .task(id: "\(showPoints)-\(service.revision)") {
                 if showPoints {

@@ -1,36 +1,35 @@
 import SwiftUI
 
 /// Shows what happened while the app was in the background: launches, pauses, geofence exits.
+/// Debug builds only, from Settings.
 struct LogView: View {
     @Environment(LocationService.self) private var service
     @State private var events: [LogEvent] = []
 
     var body: some View {
-        NavigationStack {
-            List(events) { event in
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack {
-                        Text(event.kind.rawValue.uppercased())
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(event.kind.color)
-                        Spacer()
-                        Text(event.timestamp.formatted(date: .abbreviated, time: .standard))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Text(event.message)
-                        .font(.subheadline)
+        List(events) { event in
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text(event.kind.rawValue.uppercased())
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(event.kind.color)
+                    Spacer()
+                    Text(event.timestamp.formatted(date: .abbreviated, time: .standard))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+                Text(event.message)
+                    .font(.subheadline)
             }
-            .overlay {
-                if events.isEmpty {
-                    ContentUnavailableView("No events yet", systemImage: "list.bullet.rectangle")
-                }
+        }
+        .overlay {
+            if events.isEmpty {
+                ContentUnavailableView("No events yet", systemImage: "list.bullet.rectangle")
             }
-            .navigationTitle("Log")
-            .task(id: service.revision) {
-                events = service.store.recentEvents()
-            }
+        }
+        .navigationTitle("Log")
+        .task(id: service.revision) {
+            events = service.store.recentEvents()
         }
     }
 }

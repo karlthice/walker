@@ -72,6 +72,23 @@ final class PointStore {
         }
     }
 
+    /// Removes every stored point, the explored grid, the stats and the log, as on a fresh
+    /// install. The grid is left empty at `gridVersion`, so revealing carries on from here.
+    func deleteAll(gridVersion: Int) throws {
+        pendingPoints.removeAll()
+        pendingEvents.removeAll()
+        let db = try requireDatabase()
+        try db.transaction {
+            try db.run("DELETE FROM points")
+            try db.run("DELETE FROM events")
+            try db.run("DELETE FROM tile_countries")
+        }
+        try resetGrid(version: gridVersion)
+        // Deleted rows linger in free pages and the write-ahead log until the file is rebuilt.
+        try db.execute("VACUUM")
+        try db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+    }
+
     func lastPoint() -> LocationPoint? {
         (try? requireDatabase().query(
             "SELECT ts, lat, lon, acc FROM points ORDER BY ts DESC LIMIT 1",

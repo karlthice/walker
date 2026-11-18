@@ -26,6 +26,37 @@ struct PointStoreTests {
         #expect(events.first?.kind == .pause)
     }
 
+    @Test func deleteAllLeavesAFreshStoreThatKeepsWorking() throws {
+        let url = FileManager.default.temporaryDirectory
+            .appending(path: UUID().uuidString)
+            .appending(path: "walker.sqlite")
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+
+        let store = PointStore(url: url)
+        let revealer = Revealer(store: store)
+        try revealer.rebuild()
+        let start = Date()
+        store.insert(LocationPoint(timestamp: start, latitude: 64.1466, longitude: -21.9426, accuracy: 10))
+        store.insert(LocationPoint(timestamp: start + 60, latitude: 64.1470, longitude: -21.9400, accuracy: 10))
+        store.log(.info, "before")
+        try revealer.catchUp()
+        #expect(store.tileCount(zoom: FogGrid.fineTileZoom) > 0)
+
+        try store.deleteAll(gridVersion: Revealer.version)
+        #expect(store.pointCount() == 0)
+        #expect(store.tileCount(zoom: FogGrid.fineTileZoom) == 0)
+        #expect(store.dailyStats().isEmpty)
+        #expect(store.recentEvents().isEmpty)
+        #expect(try !revealer.needsRebuild())
+
+        // New points are revealed as usual, from scratch.
+        store.insert(LocationPoint(timestamp: start + 120, latitude: 64.1440, longitude: -21.9620, accuracy: 10))
+        try revealer.catchUp()
+        #expect(store.pointCount() == 1)
+        #expect(store.tileCount(zoom: FogGrid.fineTileZoom) > 0)
+        #expect(store.dailyStats().count == 1)
+    }
+
     @Test func persistsToFile() throws {
         let url = FileManager.default.temporaryDirectory
             .appending(path: UUID().uuidString)
