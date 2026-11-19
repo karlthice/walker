@@ -4,7 +4,7 @@ Everything App Store Connect asks for, drafted. Text in [brackets] needs your in
 
 ## Still to do by hand
 
-1. **Publish the privacy policy and a support page** on kringum.is, e.g. `https://kringum.is/walker/privacy` and `https://kringum.is/walker` [use whatever paths you choose, and put the same ones in App Store Connect and in the policy's contact line].
+1. **Publish the support page and privacy policy** on kringum.is. The pages are in `site/walker/`. `scripts/make-site-package.sh` packs them into `dist/walker-site.tar.gz` with `INSTRUCTIONS-FOR-CLAUDE.md`, which tells Claude on the server how to deploy them and fill in the contact email.
 2. **Create the app record** in App Store Connect with the name **Walker - Explore your city** and bundle ID `com.karlthice.walker`. The name must be unique on the App Store; you'll find out when you create the record. Under the icon on the home screen the app stays "Walker" (`CFBundleDisplayName`).
 3. **Bump the build number** (`CFBundleVersion` in `project.yml`, now 1) on every upload; the version is 1.0.
 4. **Archive and upload** from Xcode (Product → Archive → Distribute App), then test through TestFlight on a real phone for a few days before submitting.
@@ -22,9 +22,9 @@ Everything App Store Connect asks for, drafted. Text in [brackets] needs your in
 
 **Name** (30 characters max): Walker - Explore your city
 
-**Privacy policy URL:** [https://kringum.is/walker/privacy]
+**Privacy policy URL:** https://kringum.is/walker/privacy/
 
-**Support URL:** [https://kringum.is/walker]
+**Support URL:** https://kringum.is/walker/
 
 **Subtitle** (30 characters max): Clear the fog by exploring
 
