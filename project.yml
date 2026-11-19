@@ -1,6 +1,6 @@
 name: Walker
 options:
-  bundleIdPrefix: com.karlthice
+  bundleIdPrefix: com.thoroddsen
   deploymentTarget:
     iOS: "18.0"
   createIntermediateGroups: true
@@ -32,7 +32,7 @@ targets:
         NSPhotoLibraryUsageDescription: Walker shows your photos on the map where you took them. Your photos never leave this iPhone.
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.karlthice.walker
+        PRODUCT_BUNDLE_IDENTIFIER: com.thoroddsen.walker
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1"
   WalkerTests:

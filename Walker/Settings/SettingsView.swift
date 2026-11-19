@@ -60,6 +60,9 @@ struct SettingsView: View {
                         Link("openstreetmap.org/copyright", destination: URL(string: "https://www.openstreetmap.org/copyright")!)
                     }
                     .font(.footnote)
+                    Text("© 2026 Stratos ehf.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
 
                 #if DEBUG

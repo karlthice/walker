@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE = os.path.join(ROOT, "scripts", "cache", "demo")
-BUNDLE_ID = "com.karlthice.walker"
+BUNDLE_ID = "com.thoroddsen.walker"
 ROUTER = "https://routing.openstreetmap.de/routed-foot/route/v1/driving"
 USER_AGENT = "Walker-demo-data/1.0"
 
