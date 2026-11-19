@@ -8,7 +8,15 @@ Everything App Store Connect asks for, drafted. Text in [brackets] needs your in
 2. **Create the app record** in App Store Connect with the name **Walker - Explore your city** and bundle ID `com.karlthice.walker`. The name must be unique on the App Store; you'll find out when you create the record. Under the icon on the home screen the app stays "Walker" (`CFBundleDisplayName`).
 3. **Bump the build number** (`CFBundleVersion` in `project.yml`, now 1) on every upload; the version is 1.0.
 4. **Archive and upload** from Xcode (Product → Archive → Distribute App), then test through TestFlight on a real phone for a few days before submitting.
-5. **Take screenshots** on a 6.9-inch iPhone (or its simulator) [check the current required sizes in App Store Connect].
+5. **Upload the screenshots** from `dist/screenshots/6.9-inch/` (1320×2868, the 6.9-inch size; App Store Connect scales them down for smaller iPhones), in their numbered order: fog map, raw path, stats, a country's cities, welcome screen.
+
+   To make them again after app changes, on the iPhone 17 Pro Max simulator:
+   - Set a clean status bar: `xcrun simctl status_bar <UDID> override --time 9:41 --batteryState discharging --batteryLevel 100 --wifiBars 3 --cellularBars 4`.
+   - Set the region to British English for dot decimals: `xcrun simctl spawn <UDID> defaults write -g AppleLocale en_GB`.
+   - Install the app, take the welcome screen before allowing location, and launch it once.
+   - Run `python3 scripts/make-demo-walks.py <UDID>`. It fills the app with a month of demo walks in Reykjavík, Paris, Spain and Kyoto, following real streets.
+   - Grant location (`xcrun simctl privacy <UDID> grant location-always com.karlthice.walker`), put the simulator in central Reykjavík (`xcrun simctl location <UDID> set 64.1466,-21.9405`), relaunch, and capture with `xcrun simctl io <UDID> screenshot <file>.png`.
+   - Remove the alpha channel before uploading, for example by saving through JPEG at quality 100 with `sips`.
 
 ## Already handled in the app
 
