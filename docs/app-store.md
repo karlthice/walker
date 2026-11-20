@@ -71,10 +71,6 @@ Answer **"No, we do not collect data from this app."** That results in **Data No
 
 ## Notes for App Review
 
-> Walker draws a fog over the map and clears it wherever the user goes. It needs background location ("Always") so the fog clears while the app is closed; this is the app's core feature and is explained on the welcome screen before iOS asks. All data stays on the device: there is no account, no server and no network use other than Apple Maps tiles.
->
-> To try it: allow location access, then walk or drive a short distance (or simulate a route in Xcode); the fog lifts along the path. The Stats tab shows explored area by day, country and city. The photo button on the map asks for Photos access and shows the user's photos where they were taken. The gear button opens Settings, including Delete All Data.
->
-> No login is needed.
-
-Also attach a short screen recording showing the fog clearing on a real walk, which helps with the background location review.
+Use the text in `app-review-reply.md`. It answers everything App Review asked for after the first
+submission (Guideline 2.1, Information Needed), and Apple wants it kept in the Notes field for
+future submissions. It also has the shot list for the screen recording they require.
